@@ -248,7 +248,7 @@ CRender::CRender()
 {
 	val_bInvisible = FALSE;
 	::Render = &RImplementation;
-	Engine.External.SetSkinningMode();
+	m_skinning = 0;
 }
 
 CRender::~CRender()
@@ -803,10 +803,7 @@ HRESULT	CRender::shader_compile(
 		defines[def_it++] = m_ShaderOptions[i];
 	}
 
-	const int m_skinning = Engine.External.GetSkinningMode();
-
-	if (m_skinning < 0) 
-	{
+	if (m_skinning < 0) {
 		defines[def_it].Name = "SKIN_NONE";
 		defines[def_it].Definition = "1";
 		def_it++;
@@ -815,6 +812,8 @@ HRESULT	CRender::shader_compile(
 	else {
 		sh_name[len] = '0'; ++len;
 	}
+
+	xr_string SkinMode = "";
 
 	if (0 == m_skinning) 
 	{

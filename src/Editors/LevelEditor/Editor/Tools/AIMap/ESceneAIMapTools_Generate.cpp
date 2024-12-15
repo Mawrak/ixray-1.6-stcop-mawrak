@@ -688,9 +688,6 @@ tm.GetElapsed_sec();
     }else{
     	ELog.DlgMsg(mtError,"Fill snap list before generating slots!");
     }
-
-    IsLoaded = true;
-
     return bRes;
 }
 

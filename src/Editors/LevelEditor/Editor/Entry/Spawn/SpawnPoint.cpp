@@ -1102,8 +1102,6 @@ bool CSpawnPoint::OnAppendObject(CCustomObject* object)
 		}
 	}
 
-	sh->SetLoadedState();
-
 	return true;
 }
 

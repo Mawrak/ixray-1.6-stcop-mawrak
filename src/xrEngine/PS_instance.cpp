@@ -34,13 +34,14 @@ CPS_Instance::~CPS_Instance					()
 	VERIFY									(it2==g_pGamePersistent->ps_destroy.end());
 
 	spatial_unregister						();
+	shedule_unregister						();
 }
 //----------------------------------------------------
 void CPS_Instance::shedule_Update	(u32 dt)
 {
 	if (renderable.pROS)			::Render->ros_destroy	(renderable.pROS);	//. particles doesn't need ROS
 
-	//ISheduled::shedule_Update		(dt);
+	ISheduled::shedule_Update		(dt);
 	m_iLifeTime						-= dt;
 
 	// remove???

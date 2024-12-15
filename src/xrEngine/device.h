@@ -215,8 +215,6 @@ public:
 	xr_vector		<xr_delegate<void()>>	seqParallel;
 	xr_vector		<xr_delegate<void()>>	seqParallelRender;
 
-	std::function<void()> ParticleWorkerCallback;
-
 	std::unordered_multimap<u32,std::function<void()>> m_time_callbacks;
 	void callback(const u32& cb_time, const std::function<void()> &func);
 	// Dependent classes

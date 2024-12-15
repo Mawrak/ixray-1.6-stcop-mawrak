@@ -242,15 +242,3 @@ APILevel CEngineAPI::GetAPI()
 
 	return APILevel::DX9;
 }
-
-thread_local int SkinningMode = -1;
-
-int CEngineAPI::GetSkinningMode() const
-{
-	return SkinningMode;
-}
-
-void CEngineAPI::SetSkinningMode(int Mode)
-{
-	SkinningMode = Mode;
-}

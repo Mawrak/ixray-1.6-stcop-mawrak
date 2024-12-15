@@ -158,11 +158,7 @@ void UIItemListForm::AssignItems(ListItemsVec& items, const char* name_selection
 		item->Parent = this;
 		Node* N = AppendObject(&m_GeneralNode, item->Key());
 		VERIFY(N);
-
-		if (N)
-		{
-			N->Object = item;
-		}
+		N->Object = item;
 	}
 	if (name_selection)
 	{

@@ -46,33 +46,31 @@ enum class EditorUI : u8
 	Count
 };
 
-class ENGINE_API CEngineAPI
+class ENGINE_API		CEngineAPI
 {
 private:
-	HMODULE hGame;
-	HMODULE hRender;
+	HMODULE				hGame;
+	HMODULE				hRender;
 
 public:
-	HMODULE hGameSpy;
-
-	Factory_Create* pCreate;
-	Factory_Destroy* pDestroy;
+	HMODULE				hGameSpy;
 
 	std::array<bool, static_cast<u8>(EditorUI::Count)> EditorStates = {};
 
 public:
-	CEngineAPI();
-	~CEngineAPI();
-
-public:
+	Factory_Create*		pCreate;
+	Factory_Destroy*	pDestroy;
 	void				Initialize	();
+	
 	void				InitializeNotDedicated();
 	void				Destroy		();
 
 	void				CreateRendererList();
+
 	APILevel			GetAPI();
-	int					GetSkinningMode() const;
-	void				SetSkinningMode(int Mode = -1);
+
+	CEngineAPI	();
+	~CEngineAPI	();
 };
 
 #define NEW_INSTANCE(a)		Engine.External.pCreate(a)

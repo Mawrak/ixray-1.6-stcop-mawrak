@@ -5,8 +5,6 @@
 #include "../../xrEngine/CustomHUD.h"
 #include "../../xrEngine/xr_object.h"
 
-#include "../../xrParticles/ParticlesAsyncManager.h"
-
 #include "../xrRender/QueryHelper.h"
 
 #include "FSR2Wrapper.h"
@@ -57,10 +55,8 @@ void CRender::render_main	(bool deffered, bool zfill)
 //	Msg						("---begin");
 	marker					++;
 	bool dont_test_sectors = Sectors.size() <= 1;
-
 	// Calculate sector(s) and their objects
-	if (pLastSector)		
-	{
+	if (pLastSector)		{
 		//!!!
 		//!!! BECAUSE OF PARALLEL HOM RENDERING TRY TO DELAY ACCESS TO HOM AS MUCH AS POSSIBLE
 		//!!!
@@ -140,7 +136,7 @@ void CRender::render_main	(bool deffered, bool zfill)
 		// Determine visibility for static geometry hierrarhy
 		if(psDeviceFlags.test(rsDrawStatic))
 		{
-			PROF_EVENT("add_static")
+			PROF_EVENT("static geometry hierrarhy");
 
 			if (dont_test_sectors)
 			{
@@ -161,7 +157,7 @@ void CRender::render_main	(bool deffered, bool zfill)
 				}
 			}
 		}
-		PROF_EVENT("add_dynamic")
+
 		// Traverse frustums
 		for (u32 o_it=0; o_it<lstRenderablesMain.size(); o_it++)
 		{
@@ -479,7 +475,7 @@ void CRender::Render		()
 		HOM.Enable									();
 		HOM.Render									(ViewBase);
 	}
-	
+
 	//******* Z-prefill calc - DEFERRER RENDERER
 	if (ps_r2_ls_flags.test(R2FLAG_ZFILL))		
 	{
@@ -648,12 +644,12 @@ void CRender::Render		()
 
 	{
 		PIX_EVENT(ZBUFFER_COPY);
-		RCache.set_ZB(NULL);
-		ID3D11Resource* res;
-		RDepth->GetResource(&res);
+	RCache.set_ZB(NULL);
+	ID3D11Resource* res;
+	RDepth->GetResource(&res);
 
-		RContext->CopyResource(Target->rt_Position->pSurface, res);
-		_RELEASE(res);
+	RContext->CopyResource(Target->rt_Position->pSurface, res);
+	_RELEASE(res);
 	}
 
 	// Wall marks
@@ -699,8 +695,6 @@ void CRender::Render		()
 		Target->increment_light_marker();
 	}
 
-	phase = PHASE_NORMAL;
-
 	{
 		PIX_EVENT(DEFER_SELF_ILLUM);
 		Target->phase_accumulator			();
@@ -734,8 +728,6 @@ void CRender::Render		()
 		render_lights							(LP_pending);
 	}
 
-	phase = PHASE_NORMAL;
-
 	// Postprocess
 	{
 		PIX_EVENT(DEFER_LIGHT_COMBINE);
@@ -762,7 +754,6 @@ void CRender::render_forward				()
 		render_main								(false);//
 		//	Igor: we don't want to render old lods on next frame.
 		mapLOD.clear							();
-		CParticlesAsync::Wait();
 		r_dsgraph_render_graph					(1)	;					// normal level, secondary priority
 		PortalTraverser.fade_render				()	;					// faded-portals
 		r_dsgraph_render_sorted					()	;					// strict-sorted geoms

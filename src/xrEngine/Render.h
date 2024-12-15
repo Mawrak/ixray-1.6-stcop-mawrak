@@ -180,6 +180,8 @@ public:
 		SM_forcedword				= u32(-1)
 	};
 public:
+	// options
+	s32								m_skinning;
 
 	// data
 	CFrustum						ViewBase;
@@ -203,6 +205,7 @@ public:
 	virtual BOOL					InIndoor				()											{ return false; }
 	virtual size_t					SectorsCount			()											{ return size_t(0); }
 
+			void					shader_option_skinning	(s32 mode)									{ m_skinning=mode;	}
 	virtual HRESULT					shader_compile			(
 		LPCSTR							name,
 		DWORD const*                    pSrcData,
