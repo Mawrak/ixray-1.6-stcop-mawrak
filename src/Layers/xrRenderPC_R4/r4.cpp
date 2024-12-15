@@ -15,6 +15,8 @@
 #include "../xrRenderDX10/3DFluid/dx103DFluidManager.h"
 #include "../xrRender/ShaderResourceTraits.h"
 
+#include "../../xrParticles/ParticlesAsyncManager.h"
+
 CRender										RImplementation;
 
 //////////////////////////////////////////////////////////////////////////
@@ -137,7 +139,7 @@ void CRender::create()
 {
 	Device.seqFrame.Add	(this,REG_PRIORITY_HIGH+0x12345678);
 
-	m_skinning			= -1;
+	Engine.External.SetSkinningMode();
 
 	// hardware
 	o.smapsize			= ps_r2_smapsize;
@@ -825,6 +827,7 @@ HRESULT	CRender::shader_compile(
 	u32 len = xr_strlen(sh_name);
 
 	// options
+	const int m_skinning = Engine.External.GetSkinningMode();
 	{
 		xr_sprintf(c_smapsize, "%04d", u32(o.smapsize));
 
