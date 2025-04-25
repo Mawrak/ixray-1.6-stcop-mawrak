@@ -67,6 +67,8 @@ CGameFont::CGameFont(const char* section, u32 flags) : Name(section)
 CGameFont::~CGameFont()
 {
 	// Shading
+    FT_Done_Face(OurFont);
+    
 	RenderFactory->DestroyFontRender(pFontRender);
 	pFontRender = nullptr;
 
@@ -100,8 +102,8 @@ xr_vector<xr_string> split(const xr_string& s, char delim)
 }
 #include <freetype/ftfntfmt.h>
 
-constexpr u32 TextureDimension = 2048 * 2;
-static u32 FontBitmap[TextureDimension * TextureDimension] = {};
+extern u32 TextureDimension;
+ extern xr_vector<u32> FontBitmap;
 
 void CGameFont::Initialize2(const char* name, const char* shader, const char* style, u32 size)
 {
@@ -138,7 +140,7 @@ void CGameFont::Initialize2(const char* name, const char* shader, const char* st
 			}
 		}
 	}
-	ZeroMemory(FontBitmap, sizeof(FontBitmap));
+	ZeroMemory(FontBitmap.data(), sizeof(u32) * (TextureDimension * TextureDimension));
 
 	// есть кучу способов высчитать размер шрифта для скейлинга
 	// 1. основываясь на DPI(PPI), однако, как не вычисляй его он всегда считается исходя из разрешения моника(системы) и 23 дюймов(мб с дровами на моник - из реальных дюймов)
@@ -183,7 +185,7 @@ void CGameFont::Initialize2(const char* name, const char* shader, const char* st
 		R_ASSERT3(FontFile != nullptr, "Can't find default font: %s", DefPath);
 	}
 
-	FT_Face OurFont;
+
 	FT_Error FTError = FT_New_Memory_Face(FreetypeLib, (FT_Byte*)FontFile->pointer(), FontFile->length(), 0, &OurFont);
 	R_ASSERT3(FTError == 0, "FT_New_Memory_Face return error", FullPath);
 
@@ -326,7 +328,7 @@ void CGameFont::Initialize2(const char* name, const char* shader, const char* st
 		glyphID = FT_Get_Next_Char(OurFont, glyphID, &index);
 	}
 
-	FT_Done_Face(OurFont);
+
 	fCurrentHeight = FontSizeInPixels;
 
 	string128 textureName;
@@ -342,7 +344,7 @@ void CGameFont::Initialize2(const char* name, const char* shader, const char* st
 #endif
 	R_ASSERT2(TargetDemensionY <= TextureDimension, "Font too large, or dimension texture is too small");
 
-	pFontRender->CreateFontAtlas(TextureDimension, TargetDemensionY, textureName, FontBitmap);
+	pFontRender->CreateFontAtlas(TextureDimension, TargetDemensionY, textureName, FontBitmap.data());
 
 	FS.r_close(FontFile);
 	pFontRender->Initialize(shader, textureName);
@@ -483,8 +485,14 @@ const CGameFont::Glyph* CGameFont::GetGlyphInfo(int ch)
 
 int CGameFont::WidthOf(int ch)
 {
-	const Glyph* glyphInfo = GetGlyphInfo(ch);
-	return glyphInfo ? (glyphInfo->Abc.abcA + glyphInfo->Abc.abcB + glyphInfo->Abc.abcC) : 5;
+	if (const Glyph* glyphInfo = GetGlyphInfo(ch))
+ 	{
+ 		return glyphInfo->Abc.abcA + glyphInfo->Abc.abcB + glyphInfo->Abc.abcC;
+ 	}
+ 	else
+ 	{
+ 		return OurFont->glyph->metrics.width / 64;
+ 	}
 }
 
 int CGameFont::WidthOf(const char* str)

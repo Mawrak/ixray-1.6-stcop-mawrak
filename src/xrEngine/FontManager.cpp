@@ -6,6 +6,9 @@
 
 ENGINE_API CFontManager* g_FontManager = nullptr;
 
+u32 TextureDimension = 2048 * 2;
+ xr_vector<u32> FontBitmap;
+
 CFontManager::CFontManager()
 {
 	g_FontManager = this;
@@ -15,16 +18,21 @@ CFontManager::CFontManager()
 	pFontSystem = nullptr;
 	pFontSystem16 = nullptr;
 	pFontStat = nullptr;
+    
+    TextureDimension = EngineExternal().GetFontAltasSize();
 }
 
 CFontManager::~CFontManager()
 {
 	Device.seqDeviceReset.Remove(this);
 
-	for (auto& fontPair : Fonts) {
+	for (auto& fontPair : Fonts) 
+    {
 		xr_delete(fontPair.second);
 	}
 	Fonts.clear();
+    
+    FontBitmap.clear();
 }
 
 void CFontManager::InitializeFonts()

@@ -117,13 +117,13 @@ float get_str_width(CGameFont*pFont, int ch)
 
 void CUILines::ParseText(bool force)
 {
-	if (!force && (!uFlags.test(flComplexMode) || !uFlags.test(flNeedReparse)) )
+	if (!force && (!uFlags.test(flComplexMode) || !uFlags.test(flNeedReparse)))
 		return;
 
-	if(nullptr == m_pFont)
+	if (nullptr == m_pFont)
 		return;
 
-	Reset		();
+	Reset();
 
 	CUILine* line = nullptr;
 	if (uFlags.test(flColoringMode))
@@ -225,24 +225,35 @@ void CUILines::ParseText(bool force)
 		string4096								buff;
 		float curr_width						= 0.0f;
 		bool bnew_line							= false;
-		float __eps								= get_str_width(m_pFont,'o');//hack -(
+		float __eps								= get_str_width(m_pFont,'1');//hack -(
 		for(u32 sbl_idx=0; sbl_idx<sbl_cnt; ++sbl_idx)
 		{
-			bool b_last_subl					= (sbl_idx==sbl_cnt-1);
-			CUISubLine& sbl						= line->m_subLines[sbl_idx];
-			u32 sub_len							= (u32)sbl.m_text.length();
-			u32 curr_w_pos						= 0;
-			
-			u32 last_space_idx					= 0;
-			for(u32 idx=0; idx<sub_len; ++idx)
+			bool b_last_subl = (sbl_idx == sbl_cnt - 1);
+ 			CUISubLine& sbl = line->m_subLines[sbl_idx];
+ 			u32 sub_len = (u32)sbl.m_text.length();
+ 			u32 curr_w_pos = 0;
+ 
+ 			u32 last_space_idx = 0;
+ 
+ 			xr_special_char* utf16text = nullptr;
+ 
+ #ifdef IXR_WINDOWS
+ 			if (IsUTF8(sbl.m_text.c_str()))
 			{
-				bool b_last_ch	= (idx==sub_len-1);
-				
-				if(isspace(sbl.m_text[idx]))
+				utf16text = Platform::ANSI_TO_TCHAR(sbl.m_text.c_str());
+ 				sub_len = wcslen(utf16text);
+ 			}
+ #endif
+ 
+ 			for (u32 idx = 0; idx < sub_len; ++idx)
+ 			{
+ 				bool b_last_ch = (idx == sub_len - 1);
+ 
+ 				if (isspace(sbl.m_text[idx]))
 					last_space_idx = idx;
 
-				float w1		= get_str_width(m_pFont, sbl.m_text[idx]);
-				bool bOver		= (curr_width+w1+__eps > max_width);
+				float w1 = get_str_width(m_pFont, utf16text != nullptr ? utf16text[idx] : sbl.m_text[idx]);
+ 				bool bOver = (curr_width + w1 + __eps > max_width);
 
 				if(bOver || b_last_ch)
 				{
@@ -252,10 +263,9 @@ void CUILines::ParseText(bool force)
 						last_space_idx = 0;
 					}
 #ifdef IXR_WINDOWS
-					if (IsUTF8(sbl.m_text.c_str()))
+					if (utf16text != nullptr)
 					{
-						auto utf16text = Platform::ANSI_TO_TCHAR(sbl.m_text.c_str());
-						wchar_t tempbuff[4096];
+						wchar_t tempbuff[4096] = {};
 						wcsncpy_s(tempbuff, sizeof(buff), utf16text + curr_w_pos, idx - curr_w_pos + 1);
 
 						xr_string ValidUTF8Text = Platform::CP_TCHAR_TO_ANSI_U8(tempbuff); 

@@ -447,7 +447,7 @@ void CMainMenu::OnRenderPPUI_main	()
 	pCGameFont->SetHeight(0.022f);
 	pCGameFont->SetColor(0xFFF5F5DC);
 
-	pCGameFont->Out(psCurrentVidMode[0] - pCGameFont->GetHeight(), (psCurrentVidMode[1] - pCGameFont->GetHeight()), "%s " _VER " Branch[" _BRANCH "] Hash[" _HASH "]", "IX-Ray");
+	pCGameFont->Out(psCurrentVidMode[0] - pCGameFont->GetHeight(), (psCurrentVidMode[1] - pCGameFont->GetHeight()), "%s Mawrak/ixray-1.6-stcop-mawrak Branch[" _BRANCH "] Hash[" _HASH "]", "IX-Ray");
 	pCGameFont->OnRender();
 }
 

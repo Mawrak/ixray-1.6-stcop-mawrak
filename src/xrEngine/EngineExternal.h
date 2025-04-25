@@ -45,6 +45,8 @@ public:
 	~CEngineExternal();
 
 	xr_string GetTitle() const;
+    
+    u32 GetFontAltasSize() const;
 
 	bool operator[](const EEngineExternalUI& ID) const;
 	bool operator[](const EEngineExternalPhysical& ID) const;
