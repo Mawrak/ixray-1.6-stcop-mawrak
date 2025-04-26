@@ -2,8 +2,7 @@
 #include "MbHelpers.h"
 #include "../Include/xrRender/FontRender.h"
 
-struct FT_FaceRec_;
-using FT_Face = FT_FaceRec_*;
+
 
 class ENGINE_API CGameFont
 {
@@ -179,7 +178,7 @@ private:
 	u32 Size;
 	Style Style;
     
-    FT_Face OurFont;
+    //FT_Face OurFont;
 
 	xr_map<int, Glyph> GlyphData;
 
