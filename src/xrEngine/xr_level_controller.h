@@ -88,6 +88,7 @@ enum EGameActions
 
 	kUSE_BANDAGE,
 	kUSE_MEDKIT,
+	kENGINE,
 
 	kCUSTOM1,
 	kCUSTOM2,
