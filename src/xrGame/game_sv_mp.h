@@ -222,5 +222,6 @@ public:
 		VERIFY(m_server);
 		return (*m_server);
 	}
+	DECLARE_SCRIPT_REGISTER_FUNCTION
 };
 
