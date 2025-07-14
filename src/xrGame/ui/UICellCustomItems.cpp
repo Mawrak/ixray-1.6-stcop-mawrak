@@ -193,7 +193,7 @@ CUIWeaponCellItem::CUIWeaponCellItem(CWeapon* itm)
 	}
 }
 
-#include "../xrServerEntities/object_broker.h"
+#include "../xrCore/object_broker.h"
 CUIWeaponCellItem::~CUIWeaponCellItem()
 {
 }
