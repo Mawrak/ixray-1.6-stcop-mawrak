@@ -312,7 +312,7 @@ void CMissile::State(u32 state)
 	case eShowing:
         {
 			SetPending			(TRUE);
-			PlayHUDMotion("anm_show", EHudMixType::eNoMix, GetState());
+			PlayHUDMotion(HudAnimationExist("anm_show") ? "anm_show" : "anim_show", EHudMixType::eNoMix, GetState());
 
 			if (m_eSoundsFlags.test(ESoundsFlags::sf_draw))
 			{
@@ -329,7 +329,7 @@ void CMissile::State(u32 state)
 			if(H_Parent())
 			{
 				SetPending			(TRUE);
-				PlayHUDMotion		("anm_hide", EHudMixType::eMixAll, GetState());
+				PlayHUDMotion		(HudAnimationExist("anm_hide") ? "anm_hide" : "anim_hide", EHudMixType::eMixAll, GetState());
 				if (m_eSoundsFlags.test(ESoundsFlags::sf_holster))
 				{
 					PlaySound("SndHide", Position());
@@ -359,7 +359,7 @@ void CMissile::State(u32 state)
 			{
 				PlaySound("sndThrowBegin", Position());
 			}
-			PlayHUDMotion		("anm_throw_begin", EHudMixType::eMixAll, GetState());
+			PlayHUDMotion		(HudAnimationExist("anm_throw_begin") ? "anm_throw_begin" : "anim_throw_begin", EHudMixType::eMixAll, GetState());
 
 			if (CActor* actor = H_Parent() != nullptr ? H_Parent()->cast_actor() : nullptr)
 			{
@@ -374,7 +374,7 @@ void CMissile::State(u32 state)
 		} break;
 	case eReady:
 		{
-			PlayHUDMotion		("anm_throw_idle", EHudMixType::eMixAll, GetState());
+			PlayHUDMotion		(HudAnimationExist("anm_throw_idle") ? "anm_throw_idle" : "anim_throw_idle", EHudMixType::eMixAll, GetState());
 			if (CActor* actor = H_Parent() != nullptr ? H_Parent()->cast_actor() : nullptr)
 			{
 				if (CCustomDevice* dev = actor->GetDevice())
@@ -394,7 +394,8 @@ void CMissile::State(u32 state)
 			{
 				PlaySound("sndThrow", Position());
 			}
-			PlayHUDMotion		("anm_throw", EHudMixType::eMixAll, GetState());
+			PlayHUDMotion		(HudAnimationExist("anm_throw") ? "anm_throw" : "anim_throw_act", EHudMixType::eMixAll, GetState());
+			m_motion_marks_available = !m_current_motion_def->marks.empty();
 
 			if (CActor* actor = H_Parent() != nullptr ? H_Parent()->cast_actor() : nullptr)
 			{
@@ -410,6 +411,12 @@ void CMissile::State(u32 state)
 		} break;
 	case eThrowEnd:
 		{
+			if (HudAnimationExist("anim_throw_end"))
+			{
+				SetPending(TRUE);
+				PlayHUDMotion("anim_throw_end", FALSE, GetState());
+			}
+			else
 			SwitchState			(eShowing); 
 		} break;
 /*	case eBore:
@@ -456,6 +463,11 @@ void CMissile::OnAnimationEnd(u32 state)
 	case eThrow:
 		{
 			SwitchState	(eThrowEnd);
+			if (!m_motion_marks_available && !m_throw)
+			{
+				if (H_Parent())
+					Throw();
+			}
 		} break;
 	case eThrowEnd:
 		{

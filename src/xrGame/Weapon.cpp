@@ -2380,7 +2380,7 @@ void CWeapon::UpdateScopePosition()
 {
 	auto HID = HudItemData();
 
-	if (HID != nullptr && ScopeAttachable())
+	if (HID != nullptr && !HID->m_monolithic && ScopeAttachable())
 	{
 		shared_str hands_section = HID->m_measures.m_hands_positions.sSection;
 		shared_str scope_section = GetCurrentScopeSection();
@@ -3595,7 +3595,7 @@ bool CWeapon::MovingAnimAllowedNow()
 
 bool CWeapon::IsHudModeNow()
 {
-	return (HudItemData()!=nullptr);
+	return HudItemData() && !HudItemData()->m_monolithic;
 }
 
 void CWeapon::ZoomInc()

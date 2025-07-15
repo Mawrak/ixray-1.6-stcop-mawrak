@@ -459,15 +459,15 @@ void CArtefact::OnStateSwitch(u32 S)
 	switch(S){
 	case eShowing:
 		{
-			PlayHUDMotion("anm_show", EHudMixType::eNoMix, S);
+			PlayHUDMotion(HudAnimationExist("anm_show") ? "anm_show" : "anim_draw", EHudMixType::eNoMix, S);
 		}break;
 	case eHiding:
 		{
-			PlayHUDMotion("anm_hide", EHudMixType::eNoMix, S);
+			PlayHUDMotion(HudAnimationExist("anm_hide") ? "anm_hide" : "anim_hide", EHudMixType::eNoMix, S);
 		}break;
 	case eActivating:
 		{
-			PlayHUDMotion("anm_activate", EHudMixType::eNoMix, S);
+			PlayHUDMotion(HudAnimationExist("anm_activate") ? "anm_activate" : "anim_activate", EHudMixType::eNoMix, S);
 		}break;
 	case eIdle:
 		{
@@ -478,7 +478,7 @@ void CArtefact::OnStateSwitch(u32 S)
 
 void CArtefact::PlayAnimIdle()
 {
-	PlayHUDMotion("anm_idle", EHudMixType::eNoMix, eIdle);
+	PlayHUDMotion(HudAnimationExist("anm_idle") ? "anm_idle" : "anim_idle", EHudMixType::eNoMix, eIdle);
 }
 
 void CArtefact::OnAnimationEnd(u32 state)
