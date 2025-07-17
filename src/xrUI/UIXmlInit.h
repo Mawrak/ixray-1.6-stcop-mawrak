@@ -38,6 +38,7 @@ class CUILoadingScreenProgress;
 class CUIStackPanel;
 class CUIMultiTextStatic;
 class CUITextBanner;
+class CUILoadingScreenProgress;
 
 class UI_API CUIXmlInit
 {
