@@ -76,7 +76,9 @@ void CHudItem::Load(LPCSTR section)
 
 	m_jitter_params.stop_time = floor(READ_IF_EXISTS(pSettings, r_float, hud_sect, "jitter_stop_time", 3.0f) * 1000.f);
 
-	m_bDisableBore = READ_IF_EXISTS(pSettings, r_bool, hud_sect, "disable_bore", !pSettings->line_exist(hud_sect, "anm_bore"));
+	bool boreActive = pSettings->line_exist(hud_sect, "anm_bore") || pSettings->line_exist(hud_sect, "anim_playing");
+
+	m_bDisableBore = READ_IF_EXISTS(pSettings, r_bool, hud_sect, "disable_bore", !boreActive);
 
 	m_HudLight.SetInstalled(READ_IF_EXISTS(pSettings, r_bool, section, "torch_installed", false));
 	m_HudLight.NewTorchlight(section);
@@ -323,7 +325,7 @@ void CHudItem::OnAnimationEnd(u32 state)
 
 void CHudItem::PlayAnimBore()
 {
-	PlayHUDMotion(SetCurrentStateAnimation("anm_bore"), EHudMixType::eMixAll, GetState());
+	PlayHUDMotion(SetCurrentStateAnimation(HudAnimationExist("anm_bore") ? "anm_bore" : "anim_playing"), EHudMixType::eMixAll, GetState());
 }
 
 bool CHudItem::ActivateItem() 
@@ -462,7 +464,7 @@ void CHudItem::on_a_hud_attach()
 {
 	if (m_current_motion_def)
 	{
-		PlayHUDMotion_noCB(m_current_motion, EHudMixType::eNoMix);
+		PlayHUDMotion_noCB(m_current_motion, EHudMixType::eNoMix, false);
 	}
 
 	m_eAnimationsFlags.set(EAnimationsFlags::af_torch, HudAnimationExist("anm_switch_device"));
@@ -477,7 +479,7 @@ void CHudItem::on_a_hud_attach()
 	m_eAnimationsFlags.set(EAnimationsFlags::af_det_hand_throw_end, HudAnimationExist("anm_hand_throw_end"));
 	m_eAnimationsFlags.set(EAnimationsFlags::af_det_hand_kick, HudAnimationExist("anm_kick") && HudAnimationExist("anm_kick2"));
 	m_eAnimationsFlags.set(EAnimationsFlags::af_det_hand_lam, HudAnimationExist("anm_lam"));
-	m_eAnimationsFlags.set(EAnimationsFlags::af_bore, HudAnimationExist("anm_bore"));
+	m_eAnimationsFlags.set(EAnimationsFlags::af_bore, (HudAnimationExist("anm_bore") || HudAnimationExist("anim_playing")));
 	m_eAnimationsFlags.set(EAnimationsFlags::af_firemode, (HudAnimationExist("anm_firemode") || HudAnimationExist("anm_changefiremode_from_1_to_a") || HudAnimationExist("anm_changefiremode_from_a_to_1")));
 	m_eAnimationsFlags.set(EAnimationsFlags::af_empty_click, HudAnimationExist("anm_empty_click"));
 	m_eAnimationsFlags.set(EAnimationsFlags::af_aim_in_out, (HudAnimationExist("anm_idle_aim_start") && HudAnimationExist("anm_idle_aim_end")));
@@ -515,7 +517,7 @@ bool CHudItem::HudAnimationExist(const shared_str& anim_name)
 	}
 }
 
-u32 CHudItem::PlayHUDMotion(const shared_str& M, EHudMixType bMixIn, u32 state)
+u32 CHudItem::PlayHUDMotion(const shared_str& M, EHudMixType bMixIn, u32 state, bool disableRandom)
 {
 	if (HudItemData() && !HudAnimationExist(M.c_str()))
 	{
@@ -531,7 +533,7 @@ u32 CHudItem::PlayHUDMotion(const shared_str& M, EHudMixType bMixIn, u32 state)
 		PlaySound("sndByMotion", m_object->Position());
 	}
 
-	u32 anim_time = PlayHUDMotion_noCB(M.c_str(), bMixIn);
+	u32 anim_time = PlayHUDMotion_noCB(M.c_str(), bMixIn, disableRandom);
 	if (anim_time>0)
 	{
 		m_bStopAtEndAnimIsRunning	= true;
@@ -559,7 +561,7 @@ bool CHudItem::AddSuffixName(shared_str& anim, LPCSTR suffix, LPCSTR test_suffix
 	return false;
 }
 
-u32 CHudItem::PlayHUDMotion_noCB(const shared_str& motion_name, EHudMixType bMixIn)
+u32 CHudItem::PlayHUDMotion_noCB(const shared_str& motion_name, EHudMixType bMixIn, bool disableRandom)
 {
 	m_current_motion					= motion_name;
 
@@ -574,7 +576,7 @@ u32 CHudItem::PlayHUDMotion_noCB(const shared_str& motion_name, EHudMixType bMix
 	}
 	if( HudItemData() )
 	{
-		return HudItemData()->anim_play		(motion_name, bMixIn, m_current_motion_def, m_started_rnd_anim_idx);
+		return HudItemData()->anim_play		(motion_name, bMixIn, m_current_motion_def, m_started_rnd_anim_idx, disableRandom);
 	}else
 	{
 		m_started_rnd_anim_idx				= 0;
@@ -709,7 +711,7 @@ bool CHudItem::TryPlayAnimIdle()
 
 void CHudItem::PlayAnimIdleMoving()
 {
-	PlayHUDMotion(SetCurrentStateAnimation(HudAnimationExist("anm_idle_moving") ? "anm_idle_moving" : "anim_idle"), EHudMixType::eMixAll, GetState());
+	PlayHUDMotion(SetCurrentStateAnimation(HudAnimationExist("anm_idle_moving") ? "anm_idle_moving" : "anim_idle"), EHudMixType::eMixAll, GetState(), !HudAnimationExist("anm_idle_moving"));
 }
 
 void CHudItem::PlayAnimIdleMovingSlow()
@@ -729,7 +731,7 @@ void CHudItem::PlayAnimIdleMovingCrouchSlow()
 
 void CHudItem::PlayAnimIdleSprint()
 {
-	PlayHUDMotion(SetCurrentStateAnimation(HudAnimationExist("anm_idle_sprint") ? "anm_idle_sprint" : HudAnimationExist("anim_idle_sprint") ? "anim_idle_sprint" : "anim_idle"), EHudMixType::eMixAll, GetState());
+	PlayHUDMotion(SetCurrentStateAnimation(HudAnimationExist("anm_idle_sprint") ? "anm_idle_sprint" : HudAnimationExist("anim_idle_sprint") ? "anim_idle_sprint" : "anim_idle"), EHudMixType::eMixAll, GetState(), !HudAnimationExist("anm_idle_sprint"));
 }
 
 void CHudItem::PlayAnimDeviceSwitch()
