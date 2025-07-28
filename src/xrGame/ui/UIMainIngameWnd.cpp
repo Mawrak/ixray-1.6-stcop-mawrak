@@ -1251,7 +1251,7 @@ void CUIMainIngameWnd::UpdateMainIndicators()
 	{
 		u16 slot = pActor->inventory().GetActiveSlot();
 		SetWarningIconColor(ewiWeaponJammed, 0x00ffffff);
-		if (slot == INV_SLOT_2 || slot == INV_SLOT_3)
+		if (slot == INV_SLOT_2 || slot == INV_SLOT_3 || slot == PISTOL_SLOT_NEW)
 		{
 			CWeapon* weapon = smart_cast<CWeapon*>(pActor->inventory().ItemFromSlot(slot));
 			if (weapon)
