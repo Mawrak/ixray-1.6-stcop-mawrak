@@ -64,7 +64,6 @@ void CUITalkWnd::InitTalkWnd()
 	UITalkDialogWnd->InitTalkDialogWnd();
 }
 
-static bool useCharacterNames = EngineExternal().ShadowOfChernobylMode();
 void CUITalkWnd::InitTalkDialog()
 {
 	m_pActor = Actor();
@@ -80,19 +79,19 @@ void CUITalkWnd::InitTalkDialog()
 	m_pOthersDialogManager = m_pOthersInvOwner->cast_phrase_dialog_manager();
 
 	//имена собеседников
+	if (UITalkDialogWnd->UIDialogFrameTop)
+		UITalkDialogWnd->UIDialogFrameTop->SetTextIfNodeExist(m_pOthersInvOwner->Name());
+	else
+		UITalkDialogWnd->UIDialogFrame->UITitleText.SetTextIfNodeExist(m_pOthersInvOwner->Name());
 
-	if (useCharacterNames)
+	if (UITalkDialogWnd->UIDialogFrameBottom)
+		UITalkDialogWnd->UIDialogFrameBottom->SetTextIfNodeExist(m_pOurInvOwner->Name());
+	else
+		UITalkDialogWnd->UIOurPhrasesFrame->UITitleText.SetTextIfNodeExist(m_pOurInvOwner->Name());
+
+	bool swapCharacterNames = !&CurrentGameUI()->ActorMenu();
+	if (swapCharacterNames)
 	{
-		if (UITalkDialogWnd->UIDialogFrameTop)
-			UITalkDialogWnd->UIDialogFrameTop->SetText(m_pOthersInvOwner->Name());
-		else
-			UITalkDialogWnd->UIDialogFrame->UITitleText.SetText(m_pOthersInvOwner->Name());
-
-		if (UITalkDialogWnd->UIDialogFrameBottom)
-			UITalkDialogWnd->UIDialogFrameBottom->SetText(m_pOurInvOwner->Name());
-		else
-			UITalkDialogWnd->UIOurPhrasesFrame->UITitleText.SetText(m_pOurInvOwner->Name());
-
 		UITalkDialogWnd->UICharacterInfoRight.InitCharacter(m_pOurInvOwner);
 		UITalkDialogWnd->UICharacterInfoLeft.InitCharacter(m_pOthersInvOwner);
 	}
