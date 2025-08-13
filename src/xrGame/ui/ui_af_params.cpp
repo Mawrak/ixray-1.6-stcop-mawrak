@@ -277,6 +277,7 @@ UIArtefactParamItem::UIArtefactParamItem()
 	m_unit_str._set( "" );
 	m_texture_minus._set( "" );
 	m_texture_plus._set( "" );
+	m_text_legacy = nullptr;
 }
 
 UIArtefactParamItem::~UIArtefactParamItem()
@@ -331,6 +332,11 @@ UIArtefactParamItem::InitResult UIArtefactParamItem::InitPlain(CUIXml& xml, pcst
     AttachChild(m_value);
     m_value->Show(false); // hack
 
+	TextOff();
+	m_text_legacy = UIHelper::CreateStatic(xml, buf, this);
+	m_text_legacy->TextureOff();
+	m_text_legacy->SetWidth(1000.f); // St4lker0k765: hack for complex mode
+
     return InitResult::Plain;
 }
 
@@ -383,6 +389,6 @@ void UIArtefactParamItem::SetValue( float value )
 	if (!m_caption->IsShown() && !m_value->IsShown())
 	{
 		xr_sprintf(buf, "%s %s %s", m_caption->GetText(), positive ? "%c[green]" : "%c[red]", m_value->GetText());
-		SetText(buf);
+		m_text_legacy->SetText(buf);
 	}
 }
