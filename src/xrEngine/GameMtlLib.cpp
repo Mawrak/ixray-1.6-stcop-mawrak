@@ -25,7 +25,7 @@ SGameMtl* CGameMtlLibrary::GetMaterialByIdx(u16 idx)
     return materials[idx];
 }
 
-void SGameMtl::Load(IReader& fs)
+EGameMtlVersion SGameMtl::Load(IReader& fs)
 {
 	R_ASSERT(fs.find_chunk(GAMEMTL_CHUNK_MAIN));
 	ID						= fs.r_u32();
