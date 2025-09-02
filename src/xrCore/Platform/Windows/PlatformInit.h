@@ -63,7 +63,7 @@
 #include <cderr.h>
 #pragma warning(pop)
 
-#include <stacktrace>
+
 #define USE_CXX_STACKTRACE 1
 
 #define ALIGN(a) __declspec(align(a))
