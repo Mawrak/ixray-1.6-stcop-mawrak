@@ -33,11 +33,11 @@ void CUIArtefactPanel::InitIcons(const xr_vector<const CArtefact*>& artefacts)
 	{
 		const CArtefact* artefact = *it;
 		Frect rect;
-		int UseHQ = EngineExternal()[EEngineExternalUI::HQIcons];
-		rect.left = float(artefact->GetInvGridRect().x1 *INV_GRID_WIDTH(isHQIcons));
-		rect.top = float(artefact->GetInvGridRect().y1 *INV_GRID_HEIGHT(isHQIcons));
-		rect.right = rect.left + artefact->GetInvGridRect().x2 *INV_GRID_WIDTH(isHQIcons);
-		rect.bottom = rect.top + artefact->GetInvGridRect().y2 *INV_GRID_HEIGHT(isHQIcons);
+		float scaleIcon = READ_IF_EXISTS(pSettings, r_float, artefact->cNameSect(), "inv_scale", 1.0f);
+		rect.left = float(artefact->GetInvGridRect().x1 *INV_GRID_WIDTH(scaleIcon));
+		rect.top = float(artefact->GetInvGridRect().y1 *INV_GRID_HEIGHT(scaleIcon));
+		rect.right = rect.left + artefact->GetInvGridRect().x2 *INV_GRID_WIDTH(scaleIcon);
+		rect.bottom = rect.top + artefact->GetInvGridRect().y2 *INV_GRID_HEIGHT(scaleIcon);
 		m_vRects.push_back(rect);
 	}
 }
