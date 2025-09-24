@@ -67,7 +67,8 @@ void CSE_ALifeAnomalousZone::spawn_artefacts				()
 	else
 		m_maxPower			= randF(m_min_start_power,m_max_start_power);
 
-	if (!pSettings->line_exist(name(), "artefacts"))
+	const static bool isEngineArtefactSpawn = EngineExternal()[EEngineExternalGame::EnableEngineArtefactSpawn];
+	if (!isEngineArtefactSpawn)
 		return;
 
 	LPCSTR					artefacts = pSettings->r_string(name(),"artefacts");
