@@ -27,6 +27,8 @@ SGameMtl* CGameMtlLibrary::GetMaterialByIdx(u16 idx)
 
 EGameMtlVersion SGameMtl::Load(IReader& fs)
 {
+    EGameMtlVersion vers{ GAMEMTL_VERSION_SOC };
+
 	R_ASSERT(fs.find_chunk(GAMEMTL_CHUNK_MAIN));
 	ID						= fs.r_u32();
     fs.r_stringZ			(m_Name);
@@ -51,20 +53,33 @@ EGameMtlVersion SGameMtl::Load(IReader& fs)
     fVisTransparencyFactor	= fs.r_float();
     fSndOcclusionFactor		= fs.r_float();
 
+    if (fs.find_chunk(GAMEMTL_CHUNK_FLOTATION))
+    {
+        fFlotationFactor = fs.r_float();
+    }
 
-	if(fs.find_chunk(GAMEMTL_CHUNK_FACTORS_MP))
-	    fShootFactorMP	    = fs.r_float();
-    else
-	    fShootFactorMP	    = fShootFactor;
-
-	if(fs.find_chunk(GAMEMTL_CHUNK_FLOTATION))
-	    fFlotationFactor	= fs.r_float();
-
-    if(fs.find_chunk(GAMEMTL_CHUNK_INJURIOUS))
-    	fInjuriousSpeed		= fs.r_float();
+    if (fs.find_chunk(GAMEMTL_CHUNK_INJURIOUS))
+    {
+        fInjuriousSpeed = fs.r_float();
+    }
     
-	if(fs.find_chunk(GAMEMTL_CHUNK_DENSITY))
-    	fDensityFactor		= fs.r_float();
+    if (fs.find_chunk(GAMEMTL_CHUNK_DENSITY))
+    {
+        fDensityFactor = fs.r_float();
+        vers = GAMEMTL_VERSION_CS;
+    }
+
+    if (fs.find_chunk(GAMEMTL_CHUNK_FACTORS_MP))
+    {
+        fShootFactorMP = fs.r_float();
+        vers = GAMEMTL_VERSION_COP;
+    }
+    else
+    {
+        fShootFactorMP = fShootFactor;
+    }
+
+    return vers;
 }
 
 void CGameMtlLibrary::Load()
@@ -82,11 +97,13 @@ void CGameMtlLibrary::Load()
     IReader& fs			= *F;
 
     R_ASSERT(fs.find_chunk(GAMEMTLS_CHUNK_VERSION));
-    u16 version			= fs.r_u16();
-    if (GAMEMTL_CURRENT_VERSION!=version){
-        Log				("CGameMtlLibrary: invalid version. Library can't load.");
-		FS.r_close		(F);
-    	return;
+    const auto file_version = static_cast<EGameMtlVersion>(fs.r_u16());
+
+    if (file_version != GAMEMTL_VERSION_COP)
+    {
+        Msg("CGameMtlLibrary: unsupported version [%u]. Library can't load.", file_version);
+        FS.r_close(F);
+        return;
     }
 
     R_ASSERT(fs.find_chunk(GAMEMTLS_CHUNK_AUTOINC));
@@ -95,17 +112,20 @@ void CGameMtlLibrary::Load()
 
     materials.clear		();
     material_pairs.clear();
+    auto detected_version{ GAMEMTL_VERSION_SOC };
 
     IReader* OBJ 		= fs.open_chunk(GAMEMTLS_CHUNK_MTLS);
     if (OBJ) {
         u32				count;
         for (IReader* O = OBJ->open_chunk_iterator(count); O; O = OBJ->open_chunk_iterator(count,O)) {
         	SGameMtl*	M = new SGameMtl ();
-	        M->Load		(*O);
-        	materials.push_back(M);
+            const auto version = M->Load(*O);
+            detected_version = std::max(detected_version, version);
+            materials.push_back(M);
         }
         OBJ->close		();
     }
+    m_version = detected_version;
 
     OBJ 				= fs.open_chunk(GAMEMTLS_CHUNK_MTLS_PAIR);
     if (OBJ){
