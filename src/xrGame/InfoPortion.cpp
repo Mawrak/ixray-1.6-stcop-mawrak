@@ -32,14 +32,6 @@ SInfoPortionData::~SInfoPortionData ()
 {
 }
 
-CInfoPortion::CInfoPortion()
-{
-}
-
-CInfoPortion::~CInfoPortion ()
-{
-}
-
 void CInfoPortion::Load	(shared_str info_id)
 {
 	m_InfoId = info_id;
