@@ -171,11 +171,11 @@ shared_str CWeaponBM16::SetCurrentReloadAnimation()
 	{
 		if ((GetAmmoElapsed() == 1 || !HaveCartridgeInInventory(2)) && (m_set_next_ammoType_on_reload == undefined_ammo_type || m_ammoType == m_set_next_ammoType_on_reload))
 		{
-			anim = "anm_reload_1";
+			anim = HudAnimationExist("anm_reload_1") ? "anm_reload_1" : "anim_reload_1";
 		}
 		else
 		{
-			anim = "anm_reload_2";
+			anim = HudAnimationExist("anm_reload_2") ? "anm_reload_2" : "anim_reload";
 		}
 	}
 
@@ -260,7 +260,8 @@ shared_str CWeaponBM16::SetCurrentStateAnimation(const shared_str& first_name)
 	else
 	{
 		xr_sprintf(new_suffix, "%s_%d", *anim, iAmmoElapsed);
-		anim = new_suffix;
+		if (HudAnimationExist(new_suffix))
+			anim = new_suffix;
 	}
 
 	return anim;
