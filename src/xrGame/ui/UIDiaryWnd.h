@@ -71,5 +71,6 @@ public:
 			void		MarkNewsAsRead			(bool status);
 	virtual void		Show					(bool status);
 
+	virtual CUIWindow* ui_cast_window() { return this; }
 };
 
