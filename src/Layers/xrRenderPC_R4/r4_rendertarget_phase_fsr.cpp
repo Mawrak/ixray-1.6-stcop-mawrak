@@ -29,9 +29,13 @@ void CRenderTarget::init_fsr()
 	g_Fsr2Wrapper.Create(initParams);
 }
 
+
 bool CRenderTarget::phase_fsr()
 {
 	GPU_EVENT(FSR);
+
+	PIX_EVENT(FSR);
+
 
 	Fsr2Wrapper::DrawParameters fsr2Params = {};
 	fsr2Params.deviceContext = RContext;
