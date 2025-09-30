@@ -34,7 +34,7 @@ bool CRenderTarget::phase_fsr()
 {
 	GPU_EVENT(FSR);
 
-	PIX_EVENT(FSR);
+	//PIX_EVENT(FSR);
 
 
 	Fsr2Wrapper::DrawParameters fsr2Params = {};

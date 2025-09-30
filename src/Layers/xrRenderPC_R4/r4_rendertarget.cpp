@@ -23,11 +23,9 @@
 #include "../xrRender/dxRenderDeviceRender.h"
 #include "magic_enum/magic_enum.hpp"
 
-#include "DLSSWrapper.h"
+//#include "DLSSWrapper.h"
 
-#include "OverlayAPI\FSR2Wrapper.h"
-#include "OverlayAPI\DLSSWrapper.h"
-#include "OverlayAPI\XESSWrapper.h"
+
 
 void CRenderTarget::u_setrt(const ref_rt& _1, const ref_rt& _2, const ref_rt& _3, const ref_rt& _4, ID3DDepthStencilView* zb)
 {
@@ -966,8 +964,6 @@ CRenderTarget::~CRenderTarget	()
 	xr_delete(b_gtao);
 	xr_delete(b_taa);
 
-	g_Fsr2Wrapper.Destroy();
-	g_DLSSWrapper.Destroy();
 
 	CImGuiManager::Instance().Unsubscribe("GraphicDebug");
 
