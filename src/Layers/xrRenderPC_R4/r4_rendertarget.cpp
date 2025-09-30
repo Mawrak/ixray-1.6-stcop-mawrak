@@ -23,6 +23,8 @@
 #include "../xrRender/dxRenderDeviceRender.h"
 #include "magic_enum/magic_enum.hpp"
 
+#include "DLSSWrapper.h"
+
 #include "OverlayAPI\FSR2Wrapper.h"
 #include "OverlayAPI\DLSSWrapper.h"
 #include "OverlayAPI\XESSWrapper.h"
@@ -545,7 +547,6 @@ CRenderTarget::CRenderTarget()
 
 	init_fsr();
 	init_dlss();
-	init_xess();
 
 	// Scale
 	{
@@ -967,7 +968,6 @@ CRenderTarget::~CRenderTarget	()
 
 	g_Fsr2Wrapper.Destroy();
 	g_DLSSWrapper.Destroy();
-	g_XESSWrapper.Destroy();
 
 	CImGuiManager::Instance().Unsubscribe("GraphicDebug");
 

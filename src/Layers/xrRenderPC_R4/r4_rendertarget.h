@@ -256,8 +256,6 @@ public:
 
 	void						init_fsr				();
 	bool						phase_fsr				();
-	void						init_xess();
-	bool						phase_xess();
 	void						init_dlss();
 	bool						phase_dlss();
 	void						phase_scale				();
