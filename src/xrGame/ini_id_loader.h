@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "../xrScripts/script_engine.h"
+
 //T_ID, T_INDEX -	тип индекса и id
 
 //ITEM_DATA		-	структура с полями id и index типа T_ID и T_INDEX,
