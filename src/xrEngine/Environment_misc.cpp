@@ -344,8 +344,8 @@ void CEnvDescriptor::load	(CEnvironment& environment, CInifile& config)
 	rain_length = config.line_exist(m_identifier.c_str(), "rain_length") ? config.r_float(m_identifier.c_str(), "rain_length") : 5.0f;
 	rain_width = config.line_exist(m_identifier.c_str(), "rain_width") ? config.r_float(m_identifier.c_str(), "rain_width") : 0.3f;
 
-	rain_speed_min = config.line_exist(m_identifier.c_str(), "rain_speed_min") ? config.r_float(m_identifier.c_str(), "rain_speed_min") : 40.0f;
-	rain_speed_max = config.line_exist(m_identifier.c_str(), "rain_speed_max") ? config.r_float(m_identifier.c_str(), "rain_speed_max") : 80.0f;
+	rain_speed_min = config.line_exist(m_identifier.c_str(), "rain_speed_min") ? config.r_float(m_identifier.c_str(), "rain_speed_min") : 80.0f;
+	rain_speed_max = config.line_exist(m_identifier.c_str(), "rain_speed_max") ? config.r_float(m_identifier.c_str(), "rain_speed_max") : 160.0f;
 
 	rain_angle_rotation = deg2rad(config.line_exist(m_identifier.c_str(), "rain_angle_rotation") ? config.r_float(m_identifier.c_str(), "rain_angle_rotation") : 0.0f);
 	clampr(0.0f, 360.f, rain_angle_rotation);
