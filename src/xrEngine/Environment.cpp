@@ -117,6 +117,15 @@ CEnvironment::CEnvironment	() :
 	add_const_dist_coefficient = READ_IF_EXISTS(config, r_u32, "rain", "add_const_dist_coefficient", 30);
 	add_const_dist_coefficient_render = READ_IF_EXISTS(config, r_u32, "rain", "add_const_dist_coefficient_render", 40);
 
+if (psDeviceFlags.test(rsR4))
+{
+        max_desired_items = READ_IF_EXISTS(config, r_u32, "rain_r4", "max_desired_items", 20000);
+        max_particles = READ_IF_EXISTS(config, r_u32, "rain_r4", "max_particles", 40000);
+        particles_time = READ_IF_EXISTS(config, r_float, "rain_r4", "particles_time", 0.6f);
+}
+    
+    
+    
 	xr_delete		(config);
 }
 
