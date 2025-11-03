@@ -71,7 +71,8 @@ void player_hud_motion_container::load(IKinematicsAnimated* model, const shared_
 		{
 			load_bonepart_motions(item_model, data);
 		}
-		else if (strstr(data.first.c_str(), "anm_") == data.first.c_str())
+		else if (strstr(data.first.c_str(), "anm_") == data.first.c_str() 
+			|| strstr(data.first.c_str(), "anim_") == data.first.c_str())
 		{
 			load_default_motions(model, data);
 		}
@@ -739,7 +740,9 @@ attachable_hud_item::attachable_hud_item(player_hud* parent, const shared_str& s
     else
         animatedHudItem = smart_cast<IKinematicsAnimated*>(m_model);
 
-    m_hand_motions.load(animatedHudItem, m_sect_name);
+	IKinematicsAnimated* handModel = parent->GetModel() ? parent->GetModel() : m_model->dcast_PKinematicsAnimated();
+
+    m_hand_motions.load(handModel, m_sect_name, animatedHudItem);
     reload_measures();
 }
 
@@ -767,10 +770,13 @@ void attachable_hud_item::anim_play(const shared_str& item_anm_name, EHudMixType
 
 		R_ASSERT3(M2.valid(), "model has no motion [idle] ", pSettings->r_string(m_sect_name, "item_visual"));
 
-		u16 root_id = m_model->LL_GetBoneRoot();
-		CBoneInstance& root_binst = m_model->LL_GetBoneInstance(root_id);
-		root_binst.set_callback_overwrite(TRUE);
-		root_binst.mTransform.identity();
+		if (!m_monolithic)
+		{
+			u16 root_id = m_model->LL_GetBoneRoot();
+			CBoneInstance& root_binst = m_model->LL_GetBoneInstance(root_id);
+			root_binst.set_callback_overwrite(TRUE);
+			root_binst.mTransform.identity();
+		}
 
 		u16 pc = ka->partitions().count();
 		for (u16 pid = 0; pid < pc; ++pid)
@@ -1521,7 +1527,7 @@ void player_hud::render_hud()
 	{
 		::Render->set_Transform(&m_transform);
 		if (m_model)
-		::Render->add_Visual(m_model->dcast_RenderVisual());
+			::Render->add_Visual(m_model->dcast_RenderVisual());
 	}
 
 	if(b_r0) {
