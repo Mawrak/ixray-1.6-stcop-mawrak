@@ -298,18 +298,6 @@ CCameraShotEffector::~CCameraShotEffector()
 
 BOOL CCameraShotEffector::ProcessCam(SCamEffectorInfo& info)
 {
-	if (EngineExternal().ShadowOfChernobylMode())
-	{
-		float		h, p;
-		info.d.getHP(h, p);
-		if (m_single_shot)
-		{
-			if (m_first_shot)
-				info.d.setHP(h + m_delta_horz, p + m_delta_vert);
-		}
-		else
-			info.d.setHP(h + m_angle_horz, p + m_angle_vert);
-	}
 	Update();
 	return TRUE;
 }

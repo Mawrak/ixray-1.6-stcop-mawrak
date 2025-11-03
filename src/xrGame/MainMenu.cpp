@@ -793,7 +793,7 @@ LPCSTR CMainMenu::GetGSVer()
 	static string256	buff;
 	if(m_pGameSpyFull && Engine.External.hGameSpy != 0)
 	{
-		xr_strcpy(buff, m_pGameSpyFull->GetGameVersion((int)EngineExternal().GetPlatformType()));
+		xr_strcpy(buff, m_pGameSpyFull->GetGameVersion((int)EngineExternal().GetCurrentPlatform()));
 	}
 	else
 	{

@@ -414,7 +414,7 @@ void CMissile::State(u32 state)
 			if (HudAnimationExist("anim_throw_end"))
 			{
 				SetPending(TRUE);
-				PlayHUDMotion("anim_throw_end", FALSE, GetState());
+				PlayHUDMotion("anim_throw_end", EHudMixType::eNoMix, GetState());
 			}
 			else
 			SwitchState			(eShowing); 

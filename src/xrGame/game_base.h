@@ -32,7 +32,7 @@ struct Bonus_Money_Struct {
 	Bonus_Money_Struct() {Money = 0; Reason = 0; Kills=0;}
 };
 
-struct game_PlayerState final
+struct game_PlayerState
 {
 	//string64	name;
 	u8			team;

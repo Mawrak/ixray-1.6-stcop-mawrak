@@ -184,7 +184,7 @@ bool CUIInventoryWnd::ToSlot(CUICellItem* itm, bool force_place, u16 slot_id)
 		if (!force_place || slot_id == NO_ACTIVE_SLOT)
 			return false;
 
-		if (GetInventory()->SlotIsPersistent(slot_id) && slot_id != DETECTOR_SLOT)
+		if (GetInventory()->SlotIsPersistent(slot_id) && slot_id != DEVICE_SLOT)
 			return false;
 
 		const static bool pistolsOnly = EngineExternal()[EEngineExternalGame::EnableInventoryPistolSlot];

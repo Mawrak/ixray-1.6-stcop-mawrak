@@ -397,9 +397,9 @@ void CWeaponKnife::OnAnimationEnd(u32 state)
         {
             attackStarted = false;
             if (state == eFire && HudAnimationExist("anim_shoot1_end"))
-                time = PlayHUDMotion("anim_shoot1_end", FALSE, state);
+                time = PlayHUDMotion("anim_shoot1_end", EHudMixType::eNoMix, state);
             else if (HudAnimationExist("anim_shoot2_end")) // eFire2
-                time = PlayHUDMotion("anim_shoot2_end", FALSE, state);
+                time = PlayHUDMotion("anim_shoot2_end", EHudMixType::eNoMix, state);
 
 			if (time != 0 && !attackMotionMarksAvailable)
 				OnKnifeStrike(state);

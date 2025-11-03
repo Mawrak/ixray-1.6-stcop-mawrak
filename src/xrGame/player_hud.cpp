@@ -866,15 +866,15 @@ u32 attachable_hud_item::anim_play(const shared_str& anm_name_b, EHudMixType bMi
 {
 	player_hud_motion* anm	= m_hand_motions.find_motion(anm_name_b);
 	R_ASSERT2(anm, make_string<const char*>("model [%s] has no motion alias defined [%s]", m_sect_name.c_str(), anm_name_b.c_str()));
-	R_ASSERT2(anm->m_animations.size(), make_string<const char*>("model [%s] has no motion defined in motion_alias [%s]", pSettings->r_string(m_sect_name, "item_visual"), anm_name_b.c_str()));
-	
+	R_ASSERT2(anm->m_animations.size(), make_string<const char*>("model [%s] has no motion defined in motion_alias [%s]", m_visual_name.c_str(), anm_name_b));
+
 	rnd_idx					= (u8)Random.randI(anm->m_animations.size()) ;
 	const motion_descr& M	= anm->m_animations[ disableRandom ? 0 : rnd_idx ];
 	float speed = anm->m_anim_speed;
 
 	bool need_mix_hands = bMixIn >= EHudMixType::eMixHands;
 
-	u32 ret = g_player_hud->anim_play(m_attach_place_idx, M.mid, need_mix_hands, md, speed);
+	u32 ret					= m_parent->anim_play(m_attach_place_idx, M.mid, bMixIn, md, speed, m_monolithic ? m_model->dcast_PKinematicsAnimated() : nullptr);
 	
 	if(IKinematicsAnimated* ka = m_model->dcast_PKinematicsAnimated())
 	{
@@ -1855,9 +1855,7 @@ attachable_hud_item* player_hud::create_hud_item(const shared_str& sect)
 		if(itm->m_sect_name==sect)
 			return itm;
 	}
-	attachable_hud_item* res	= new attachable_hud_item(this);
-	res->load					(sect);
-	res->m_hand_motions.load	(m_model, sect, res->m_model->dcast_PKinematicsAnimated());
+	attachable_hud_item* res	= new attachable_hud_item(this, sect, m_model);
 	m_pool.push_back			(res);
 
 	return	res;

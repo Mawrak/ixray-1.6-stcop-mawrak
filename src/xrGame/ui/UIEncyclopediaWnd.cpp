@@ -19,7 +19,7 @@
 #include "../encyclopedia_article.h"
 #include "../alife_registry_wrappers.h"
 #include "../actor.h"
-#include "object_broker.h"
+#include "../../xrCore/object_broker.h"
 #include "../../xrUI/UIHelper.h"
 
 #define				ENCYCLOPEDIA_DIALOG_XML		"encyclopedia.xml"

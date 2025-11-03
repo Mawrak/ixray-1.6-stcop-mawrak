@@ -28,7 +28,7 @@ void CWeaponPistol::PlayAnimIdle()
 
 	if (!iAmmoElapsed && HudAnimationExist("anim_empty"))
 	{
-		PlayHUDMotion("anim_empty", TRUE, GetState());
+		PlayHUDMotion("anim_empty", EHudMixType::eMixAll, GetState());
 	}
 	else
 	{

@@ -48,10 +48,6 @@ public:
 	}
 };
 
-<<<<<<< HEAD
-//class CKnownContactsRegistryWrapper :	public CALifeRegistryWrapperObject<CALifeRegistryWrapper<CKnownContactsRegistry> > {};
-=======
->>>>>>> 1ba673df7 (Add basic SoC functionality)
 class CEncyclopediaRegistryWrapper :	public CALifeRegistryWrapperObject<CALifeRegistryWrapper<CEncyclopediaRegistry> > {};
 class CGameNewsRegistryWrapper :		public CALifeRegistryWrapperObject<CALifeRegistryWrapper<CGameNewsRegistry> > {};
 class CInfoPortionWrapper :				public CALifeRegistryWrapperObject<CALifeRegistryWrapper<CInfoPortionRegistry> > {};
