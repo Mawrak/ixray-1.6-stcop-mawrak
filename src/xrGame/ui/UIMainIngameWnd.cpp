@@ -91,6 +91,7 @@ CUIMainIngameWnd::CUIMainIngameWnd()
 	UIStarvationIcon			= nullptr;
 	UIRadiaitionIcon			= nullptr;
 	UIWoundIcon					= nullptr;
+	UIPdaOnline					= nullptr;
 }
 
 #include "../../xrUI/Widgets/UIProgressShape.h"
