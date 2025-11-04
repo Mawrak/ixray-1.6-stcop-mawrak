@@ -740,9 +740,7 @@ attachable_hud_item::attachable_hud_item(player_hud* parent, const shared_str& s
     else
         animatedHudItem = smart_cast<IKinematicsAnimated*>(m_model);
 
-	IKinematicsAnimated* handModel = parent->GetModel() ? parent->GetModel() : m_model->dcast_PKinematicsAnimated();
-
-    m_hand_motions.load(handModel, m_sect_name, animatedHudItem);
+    m_hand_motions.load(animatedHudItem, m_sect_name, m_model->dcast_PKinematicsAnimated());
     reload_measures();
 }
 
