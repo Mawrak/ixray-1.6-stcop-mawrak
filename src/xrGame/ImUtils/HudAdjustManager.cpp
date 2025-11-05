@@ -115,9 +115,49 @@ void RenderHUDAdjustManager()
 							}
 						};
 
+					auto writeParamsLegacy = [](attachable_hud_item* p_item, CInifile& file) -> void
+						{
+							string64 sect = "";
+							xr_sprintf(sect, sizeof(sect), p_item->m_sect_name.c_str());
+
+							file.w_fvector3(sect, "position", p_item->m_measures.m_item_attach[0]);
+							file.w_fvector3(sect, "orientation", p_item->m_measures.m_item_attach[1]);
+
+							if (p_item->m_measures.m_prop_flags.test(p_item->m_measures.e_shell_point))
+							{
+								file.w_fvector3(sect, "shell_point", p_item->m_measures.m_shell_point_offset);
+							}
+							if (p_item->m_measures.m_prop_flags.test(p_item->m_measures.e_fire_point))
+							{
+								file.w_fvector3(sect, "fire_point", p_item->m_measures.m_fire_point_offset);
+							}
+							if (p_item->m_measures.m_prop_flags.test(p_item->m_measures.e_fire_point2))
+							{
+								file.w_fvector3(sect, "fire_point2", p_item->m_measures.m_fire_point2_offset);
+							}
+
+							if (p_item->m_measures.m_hands_positions.hands_offsets[0][1] != zero_vel)
+							{
+								file.w_fvector3(sect, "zoom_offset", p_item->m_measures.m_hands_positions.hands_offsets[0][1]);
+								file.w_float(sect, "zoom_rotate_x", p_item->m_measures.m_hands_positions.hands_offsets[1][1].x);
+								file.w_float(sect, "zoom_rotate_y", p_item->m_measures.m_hands_positions.hands_offsets[1][1].y);
+								if (!fis_zero(p_item->m_measures.m_hands_positions.hands_offsets[1][1].z))
+									file.w_float(sect, "zoom_rotate_z", p_item->m_measures.m_hands_positions.hands_offsets[1][1].z);
+							}
+							if (p_item->m_measures.m_hands_positions.hands_offsets[0][2] != zero_vel)
+							{
+								file.w_fvector3(sect, "grenade_zoom_offset", p_item->m_measures.m_hands_positions.hands_offsets[0][1]);
+								file.w_float(sect, "grenade_zoom_rotate_x", p_item->m_measures.m_hands_positions.hands_offsets[1][1].x);
+								file.w_float(sect, "grenade_zoom_rotate_y", p_item->m_measures.m_hands_positions.hands_offsets[1][1].y);
+								if (!fis_zero(p_item->m_measures.m_hands_positions.hands_offsets[1][1].z))
+									file.w_float(sect, "grenade_zoom_rotate_z", p_item->m_measures.m_hands_positions.hands_offsets[1][1].z);
+							}
+						};
+
+
 					if (p_hud_item_first)
 					{
-						writeParams(p_hud_item_first, file);
+						p_hud_item_first->m_monolithic ? writeParamsLegacy(p_hud_item_first, file) : writeParams(p_hud_item_first, file);
 					}
 					if (p_hud_item_second)
 					{
@@ -144,7 +184,7 @@ void RenderHUDAdjustManager()
 				{
 					ImGui::SetTooltip("* Shift + drag\nFor slower value change\n* Ctrl + click(or double click)\nInput text into slider\n* Alt + drag\nFor quick value change, opposite of Shift key");
 				}
-
+				
 				if (p_item)
 				{					
 					if (g_player_hud)
@@ -274,7 +314,6 @@ void RenderHUDAdjustManager()
 										}
 									}
 								}
-								//if (!(p_item->m_monolithic && p_item->m_parent_hud_item->GetCurrentHudOffsetIdx() == 0))
 								{
 									if (ImGui::CollapsingHeader(hud_header_name))
 									{
@@ -312,11 +351,11 @@ void RenderHUDAdjustManager()
 													{
 													case 1:
 														xr_strconcat(val_name, "aim_hud_offset_pos", _prefix);
-														position = pSettings->r_fvector3(p_item->m_sect_name, val_name);
+														position = READ_IF_EXISTS(pSettings, r_fvector3, p_item->m_sect_name, val_name, pSettings->r_fvector3(p_item->m_sect_name, "zoom_offset"));
 														break;
 													case 2:
 														xr_strconcat(val_name, "gl_hud_offset_pos", _prefix);
-														position = pSettings->r_fvector3(p_item->m_sect_name, val_name);
+														position = READ_IF_EXISTS(pSettings, r_fvector3, p_item->m_sect_name, val_name, pSettings->r_fvector3(p_item->m_sect_name, "grenade_zoom_offset"));
 														break;
 													default:
 														xr_strconcat(val_name, "hands_position", _prefix);
@@ -351,11 +390,25 @@ void RenderHUDAdjustManager()
 													{
 													case 1:
 														xr_strconcat(val_name, "aim_hud_offset_rot", _prefix);
-														rotation = pSettings->r_fvector3(p_item->m_sect_name, val_name);
+														if (pSettings->line_exist(p_item->m_sect_name, val_name))
+															rotation = pSettings->r_fvector3(p_item->m_sect_name, val_name);
+														else
+														{
+															rotation.x = pSettings->r_float(p_item->m_sect_name, "zoom_rotate_x");
+															rotation.y = pSettings->r_float(p_item->m_sect_name, "zoom_rotate_y");
+															rotation.z = READ_IF_EXISTS(pSettings, r_float, p_item->m_sect_name, "zoom_rotate_z", 0.0f);
+														}
 														break;
 													case 2:
 														xr_strconcat(val_name, "gl_hud_offset_rot", _prefix);
-														rotation = pSettings->r_fvector3(p_item->m_sect_name, val_name);
+														if (pSettings->line_exist(p_item->m_sect_name, val_name))
+															rotation = pSettings->r_fvector3(p_item->m_sect_name, val_name);
+														else
+														{
+															rotation.x = pSettings->r_float(p_item->m_sect_name, "grenade_zoom_rotate_x");
+															rotation.y = pSettings->r_float(p_item->m_sect_name, "grenade_zoom_rotate_y");
+															rotation.z = READ_IF_EXISTS(pSettings, r_float, p_item->m_sect_name, "grenade_zoom_rotate_z", 0.0f);
+														}
 														break;
 													default:
 														xr_strconcat(val_name, "hands_orientation", _prefix);
@@ -383,9 +436,12 @@ void RenderHUDAdjustManager()
 												}
 											};
 
-										if (ImGui::CollapsingHeader("Offset 0 (default)"))
+										if (!p_item->m_monolithic)
 										{
-											drawHudParameters(p_item, 0);
+											if (ImGui::CollapsingHeader("Offset 0 (default)"))
+											{
+												drawHudParameters(p_item, 0);
+											}
 										}
 										if (p_item->m_measures.m_hands_positions.hands_offsets[0][1] != zero_vel)
 										{
@@ -416,7 +472,7 @@ void RenderHUDAdjustManager()
 									if (ImGui::Button("Reset##IPosition"))
 									{
 										xr_strconcat(val_name, "item_position", _prefix);
-										position = pSettings->r_fvector3(p_item->m_sect_name, val_name);
+										position = READ_IF_EXISTS(pSettings, r_fvector3, p_item->m_sect_name, val_name, pSettings->r_fvector3(p_item->m_sect_name, "position"));
 									}
 
 									if (ImGui::BeginTable("Data##HUDPI", 1))
@@ -440,7 +496,7 @@ void RenderHUDAdjustManager()
 									if (ImGui::Button("Reset##IRotation"))
 									{
 										xr_strconcat(val_name, "item_orientation", _prefix);
-										rotation = pSettings->r_fvector3(p_item->m_sect_name, val_name);
+										rotation = READ_IF_EXISTS(pSettings, r_fvector3, p_item->m_sect_name, val_name, pSettings->r_fvector3(p_item->m_sect_name, "orientation"));
 									}
 
 									if (ImGui::BeginTable("Data##HUDR", 1))
