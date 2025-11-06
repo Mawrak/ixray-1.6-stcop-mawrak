@@ -109,9 +109,9 @@ void RenderHUDAdjustManager()
 							if (p_item->m_measures.m_hands_positions.hands_offsets[0][2] != zero_vel)
 							{
 								xr_strconcat(val_name, "gl_hud_offset_pos", _prefix);
-								file.w_fvector3(sect, val_name, p_item->m_measures.m_hands_positions.hands_offsets[0][1]);
+								file.w_fvector3(sect, val_name, p_item->m_measures.m_hands_positions.hands_offsets[0][2]);
 								xr_strconcat(val_name, "gl_hud_offset_rot", _prefix);
-								file.w_fvector3(sect, val_name, p_item->m_measures.m_hands_positions.hands_offsets[1][1]);
+								file.w_fvector3(sect, val_name, p_item->m_measures.m_hands_positions.hands_offsets[1][2]);
 							}
 						};
 
@@ -146,11 +146,11 @@ void RenderHUDAdjustManager()
 							}
 							if (p_item->m_measures.m_hands_positions.hands_offsets[0][2] != zero_vel)
 							{
-								file.w_fvector3(sect, "grenade_zoom_offset", p_item->m_measures.m_hands_positions.hands_offsets[0][1]);
-								file.w_float(sect, "grenade_zoom_rotate_x", p_item->m_measures.m_hands_positions.hands_offsets[1][1].x);
-								file.w_float(sect, "grenade_zoom_rotate_y", p_item->m_measures.m_hands_positions.hands_offsets[1][1].y);
+								file.w_fvector3(sect, "grenade_zoom_offset", p_item->m_measures.m_hands_positions.hands_offsets[0][2]);
+								file.w_float(sect, "grenade_zoom_rotate_x", p_item->m_measures.m_hands_positions.hands_offsets[1][2].x);
+								file.w_float(sect, "grenade_zoom_rotate_y", p_item->m_measures.m_hands_positions.hands_offsets[1][2].y);
 								if (!fis_zero(p_item->m_measures.m_hands_positions.hands_offsets[1][1].z))
-									file.w_float(sect, "grenade_zoom_rotate_z", p_item->m_measures.m_hands_positions.hands_offsets[1][1].z);
+									file.w_float(sect, "grenade_zoom_rotate_z", p_item->m_measures.m_hands_positions.hands_offsets[1][2].z);
 							}
 						};
 
