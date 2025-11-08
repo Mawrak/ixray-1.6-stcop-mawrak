@@ -31,6 +31,8 @@ public:
 	virtual CWeaponRPG7* cast_weapon_rpg7() { return this; }
 
 protected:
+	shared_str	m_sGrenadeBoneName;
+	shared_str	m_sHudGrenadeBoneName;
 	virtual bool	AllowBore		();
 	virtual void	PlayAnimReload	();
 
