@@ -97,8 +97,15 @@ void   CChimera::Load (LPCSTR section)
 	anim().AddAnim	(eAnimDie,				"stand_idle_",			-1, &velocity_none,		PS_STAND);
 	anim().AddAnim	(eAnimThreaten,			"stand_idle_",			-1, &velocity_none,		PS_STAND);
 
-	anim().AddAnim	(eAnimRunTurnLeft,		{"stand_run_turn_ls_", "stand_turn_ls_"},	-1, &velocity_run,	PS_STAND);
-	anim().AddAnim	(eAnimRunTurnRight,		{"stand_run_turn_rs_", "stand_turn_rs_"}, -1, &velocity_run, PS_STAND);
+	if (Visual()->dcast_PKinematicsAnimated()->ID_Cycle_Safe("stand_run_turn_ls_0"))
+		anim().AddAnim	(eAnimRunTurnLeft,		"stand_turn_ls_",	-1, &velocity_run,	PS_STAND);
+	else
+		anim().AddAnim	(eAnimRunTurnLeft,		"stand_turn_ls_",	-1, &velocity_run,	PS_STAND);
+
+	if (Visual()->dcast_PKinematicsAnimated()->ID_Cycle_Safe("stand_run_turn_rs_0"))
+		anim().AddAnim	(eAnimRunTurnRight,		"stand_run_turn_rs_", -1, &velocity_run, PS_STAND);
+	else
+		anim().AddAnim	(eAnimRunTurnRight,		"stand_turn_rs_", -1, &velocity_run, PS_STAND);
 
 	anim().AddAnim	(eAnimUpperAttack,		"jump_attack_", -1, jumpVelocityExist ? &m_velocity_jump_start : &velocity_turn, PS_STAND);
 
