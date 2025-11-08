@@ -264,14 +264,10 @@ uniform sampler2D s_tonemap; // actually MidleGray / exp(Lw + eps)
 float3 tonemap(float3 rgb, float scale)
 {
     rgb = rgb * scale;
-#ifndef USE_SOC_LIGHTING
     const float fWhiteIntensity = 1.7f;
     const float fWhiteIntensitySQR = fWhiteIntensity * fWhiteIntensity;
 
     return rgb * (1.0f + rgb / fWhiteIntensitySQR) / (rgb + 1.0f);
-#else
-	return rgb;
-#endif
 }
 
 float4 combine_bloom(float3 low, float4 high)
@@ -299,7 +295,8 @@ float3 p_hemi(float2 tc)
 {
     float4 t_lmh = tex2D(s_hemi, tc);
 #ifdef USE_SOC_LIGHTING
-    return  dot(t_lmh.rgb, 1.h/3.h);
+	float r_lmh = (1.0/3.0);
+	return dot(t_lmh.xyz, float3(r_lmh, r_lmh, r_lmh));
 #else
     return t_lmh.a;
 #endif
