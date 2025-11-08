@@ -273,7 +273,7 @@
 	</cell_item_mark>
 
 	<cell_item_upgrade x="1" y="1" width="13" height="16" stretch="1">
-		<texture a="180">ui_upgrade_arrow2</texture>
+		<!--texture a="180">ui_upgrade_arrow2</texture-->
 	</cell_item_upgrade>
 
 	<cell_item_custom_mark x="1" y="1" width="13" height="16" stretch="1">
