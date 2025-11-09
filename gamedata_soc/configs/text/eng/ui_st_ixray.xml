@@ -63,6 +63,9 @@
     <string id="st_filter_fsr">
         <text>FSR2</text>
     </string>
+	<string id="st_filter_xess">
+		<text>Intel XeSS</text>
+	</string>
     <string id="st_freemp">
         <text>Freeplay</text>
     </string>
@@ -385,7 +388,12 @@
 	<string id="st_track_opt_on">
 		<text>on</text>
 	</string>
-	
+	<string id="st_undress_backpack">
+		<text>take off backpack</text>
+	</string>
+	<string id="st_dress_backpack">
+		<text>put on backpack</text>
+	</string>
 	<string id="st_drop_amount">
 		<text>drop amount</text>
 	</string>

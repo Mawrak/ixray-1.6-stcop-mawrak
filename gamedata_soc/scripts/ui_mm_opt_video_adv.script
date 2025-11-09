@@ -38,10 +38,6 @@ function opt_video_adv:InitControls(x, y, xml, handler)
 	local ctl = nil
     local _st = nil
 	
-	-----------------------------------------------------------------------------
-	-----------------------------------------------------------------------------
-	-----------------------------------------------------------------------------
-
     local lineFrame = function (prec, text)
         local static = xml:InitStatic("video_adv:templ_item", nil)
         local temp = xml:InitFrameLine("video_adv:header_setup", static)
@@ -70,7 +66,7 @@ function opt_video_adv:InitControls(x, y, xml, handler)
 		end
 	end
 	
-    local addTrack = function (prec, text, command, step, invert, mode, show_value, depend, reg_name)
+    local addTrack = function (prec, text, command, step, invert, mode, show_value, depend, reg_name, magnitude)
         _st = xml:InitStatic("video_adv:templ_item", nil)
         local temp = xml:InitTrackBar("video_adv:track_template_" .. mode, _st)
         local tempText = xml:InitTextWnd("video_adv:cap_template", _st)
@@ -82,13 +78,16 @@ function opt_video_adv:InitControls(x, y, xml, handler)
 		if reg_name then
 			handler:Register(temp, reg_name)
 		end
+		if magnitude then
+			temp:SetMagnitude(magnitude)
+		end
 		temp:SetStep(step)
         tempText:SetTextST(text)
 		return temp
     end
-	
+
     local addCheck = function (prec, text, command, depend, reg_name)
-        _st = xml:InitStatic("video_adv:templ_item", nil)
+	_st = xml:InitStatic("video_adv:templ_item", nil)
         local temp = xml:InitCheck("video_adv:check_template", _st)
         local tempText = xml:InitTextWnd("video_adv:cap_template", _st)
 		if prec then
@@ -102,9 +101,9 @@ function opt_video_adv:InitControls(x, y, xml, handler)
 		tempText:SetTextST(text)
 		return temp
     end
-	
+
     local addComboBox = function (prec, text, command, list_length, show_scroll, depend, reg_name)
-        _st = xml:InitStatic("video_adv:templ_item", nil)
+    _st = xml:InitStatic("video_adv:templ_item", nil)
         local temp = xml:InitComboBox("video_adv:list_template", _st)
         local tempText = xml:InitTextWnd("video_adv:cap_template", _st)
         table.insert(handler.m_preconditions, {func=prec, control=_st})
@@ -130,7 +129,7 @@ function opt_video_adv:InitControls(x, y, xml, handler)
 	addTrack(all_modes, "ui_mm_vis_distance", "rs_vis_distance", 0.1, false, "float", false, "sdNothing")
 	addTrack(all_modes, "ui_mm_geometry_lod", "r__geometry_lod", 0.1, false, "float", false, "sdNothing")
 
-	-----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 	-----------------------------------------------------------------------------
 	-----------------------------------------------------------------------------
 	
@@ -143,15 +142,15 @@ function opt_video_adv:InitControls(x, y, xml, handler)
 	addCheck(mode_2, "ui_mm_r2_detail_bump", "r2_detail_bump", "sdNothing")
 	addCheck(mode_2, "ui_mm_r2_steep_parallax", "r2_steep_parallax", "sdNothing")
 	addCheck(mode_4, "ui_mm_r4_enable_tessellation", "r4_enable_tessellation", "sdNothing")
-
+	
 	-----------------------------------------------------------------------------
 	-----------------------------------------------------------------------------
 	-----------------------------------------------------------------------------
 	
 	lineFrame(all_modes, "st_aa_options")
 
- 	addComboBox(mode_4, "ui_mm_r_scale_mode", "vid_scale_mode", 4, false, "sdVidRestart", "scaleMode")
-	handler:AddCallback("scaleMode", ui_events.LIST_ITEM_SELECT, reloadControls, nil)
+ 	addComboBox(mode_4, "ui_mm_r_scale_mode", "vid_scale_mode", 5, false, "sdVidRestart", "scaleMode")
+    handler:AddCallback("scaleMode", ui_events.LIST_ITEM_SELECT, reloadControls, nil)
 	
 	local scalePresetPrec = function(id)
 		if mode_4(id) then
@@ -164,8 +163,8 @@ function opt_video_adv:InitControls(x, y, xml, handler)
 	end
 	
  	addComboBox(scalePresetPrec, "ui_mm_r_scale_preset", "vid_scale_preset", 7, false, "sdVidRestart", "scalePreset")
-	handler:AddCallback("scalePreset", ui_events.LIST_ITEM_SELECT, reloadControls, nil)
-
+    handler:AddCallback("scalePreset", ui_events.LIST_ITEM_SELECT, reloadControls, nil)
+	
 	local vidScalePrec = function(id)
 		if mode_4(id) then
 			local scale_mode = handler:GetComboBox("scaleMode"):CurrentID()
@@ -179,7 +178,7 @@ function opt_video_adv:InitControls(x, y, xml, handler)
 		return false
 	end
 	
-	addTrack(vidScalePrec, "ui_mm_vid_scale", "vid_scale", 0.01, false, "float", true, "sdVidRestart")
+	addTrack(vidScalePrec, "ui_mm_vid_scale", "vid_scale", 0.01, false, "float", true, "sdVidRestart", "scaleTrack", 100)
 
 	local typeAAPrec = function(id)
 		if mode_4(id) then
@@ -194,12 +193,12 @@ function opt_video_adv:InitControls(x, y, xml, handler)
 		return true
 	end
 	
-	addTrack(mode_4, "ui_mm_cas_sharpening", "r4_cas_sharpening", 0.01, false, "float", true, "sdNothing")
-	
+	addTrack(mode_4, "ui_mm_cas_sharpening", "r4_cas_sharpening", 0.01, false, "float", true, "sdNothing", "sharpeningTrack", 100)
+
 	addCheck(mode_4, "ui_mm_hashed_alpha_test", "r4_hashed_alpha_test", "sdSystemRestart", "hashedAlpha")
-
+	
 	addComboBox(typeAAPrec, "ui_mm_supersample", "r_aa", 4, false, "sdNothing")
-
+	
 	-----------------------------------------------------------------------------
 	-----------------------------------------------------------------------------
 	-----------------------------------------------------------------------------
@@ -220,9 +219,9 @@ function opt_video_adv:InitControls(x, y, xml, handler)
 	lineFrame(mode_2, "st_sunlight_options")
 
     local sunTable = {}	
-
-	handler.enableSun = addCheck(nil, "ui_mm_r2_sun", "r2_sun", "sdSystemRestart", "enableSun")
 	
+	handler.enableSun = addCheck(nil, "ui_mm_r2_sun", "r2_sun", "sdSystemRestart", "enableSun")
+
     local enableSunFunc = function(id)
 		if mode_2(id) then
 			for _, control in pairs(sunTable) do
@@ -238,22 +237,22 @@ function opt_video_adv:InitControls(x, y, xml, handler)
 	
 	table.insert(handler.m_preconditions, {func=enableSunFunc, control=_st})
     handler:AddCallback("enableSun", ui_events.BUTTON_CLICKED, reloadControls, nil)
-	
+
 	ctl = addCheck(mode_2, "ui_mm_r2_details_shadows", "r2_sun_details", "sdNothing")
     table.insert(sunTable, ctl)
-    
+	
 	ctl = addCheck(mode_2, "ui_mm_lights_details", "r2_lights_details", "sdNothing")
     table.insert(sunTable, ctl)
-    
+	
 	ctl = addCheck(mode_2, "ui_mm_r2_cloud_shadows", "r2_cloud_shadows", "sdVidRestart")
     table.insert(sunTable, ctl)
 	
   	ctl = addComboBox(mode_2, "ui_mm_r2_sun_quality", "r2_sun_quality", 6, false, "sdVidRestart")
-	table.insert(sunTable, ctl)
+    table.insert(sunTable, ctl)
 	
   	ctl = addComboBox(mode_2, "ui_mm_sun_shafts", "r2_sun_shafts", 5, false, "sdVidRestart")
     table.insert(sunTable, ctl)
-	
+
   	addComboBox(mode_2, "ui_mm_r__smap_size", "r2_smap_size", 5, false, "sdSystemRestart")
 	
 	-----------------------------------------------------------------------------
@@ -279,8 +278,10 @@ function opt_video_adv:InitControls(x, y, xml, handler)
 	addCheck(mode_2, "ui_mm_vignette", "r2_vignette", "sdNothing")
 	addCheck(mode_2, "ui_mm_aberration", "r2_aberration", "sdNothing")
 	addCheck(mode_2, "ui_mm_saturation", "r2_saturation", "sdNothing")
+	addCheck(mode_4, "ui_mm_r4_use_gasmask", "r4_use_gasmask", "sdNothing")
+	addCheck(mode_2, "ui_mm_r2_use_rain_drops", "r2_use_rain_drops", "sdNothing")
+
 	handler.enableDof = addCheck(mode_2, "ui_mm_dof", "r2_dof_enable", "sdVidRestart", "enableDof")
-	
     handler:AddCallback("enableDof", ui_events.BUTTON_CLICKED, reloadControls, nil)
 
 	handler.reloadDof = addCheck(nil, "ui_mm_dof_reload", "enable_dof_reload", "sdNothing")
@@ -297,7 +298,7 @@ function opt_video_adv:InitControls(x, y, xml, handler)
     table.insert(handler.m_preconditions, {func=enableReloadDofFunc, control=_st})
 
    	handler.talkDof = addCheck(nil, "ui_mm_dof_talk", "enable_dof_talk", "sdNothing")
- 
+    
     local enableTalkDofFunc = function(id)
 		if mode_2(id) then
 			handler.talkDof:Enable(handler.enableDof:GetCheck())

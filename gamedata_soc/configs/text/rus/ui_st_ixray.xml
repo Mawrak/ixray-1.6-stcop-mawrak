@@ -64,7 +64,9 @@
     <string id="st_filter_fsr">
         <text>FSR2</text>
     </string>
-
+	<string id="st_filter_xess">
+		<text>Intel XeSS</text>
+	</string>
     <string id="st_freemp">
         <text>Свободный</text>
     </string>
@@ -388,6 +390,18 @@
 	</string>
 	<string id="st_track_opt_on">
 		<text>вкл.</text>
+	</string>
+	<string id="st_undress_backpack">
+		<text>снять рюкзак</text>
+	</string>
+	<string id="st_dress_backpack">
+		<text>надеть рюкзак</text>
+	</string>
+	<string id="ui_mm_r4_use_gasmask">
+		<text>Эффект маски стекла</text>
+	</string>
+	<string id="ui_mm_r2_use_rain_drops">
+		<text>Капли на стекле</text>
 	</string>
 	
 	<string id="st_drop_amount">
