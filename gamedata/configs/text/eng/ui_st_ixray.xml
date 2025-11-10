@@ -412,4 +412,20 @@
 	<string id="st_custom_drop_hint_2">
 		<text>Specify amount of items to take</text>
 	</string>
+	
+	<string id="st_grenade_blast_hit">
+		<text>Blast damage</text>
+	</string>
+	<string id="st_grenade_blast_radius">
+		<text>Blast radius</text>
+	</string>
+	<string id="st_grenade_frags_count">
+		<text>Frags count</text>
+	</string>
+	<string id="st_grenade_frags_radius">
+		<text>Frag radius</text>
+	</string>
+	<string id="st_grenade_frags_hit">
+		<text>Frag damage</text>
+	</string>
 </string_table>
