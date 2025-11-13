@@ -335,16 +335,7 @@ void CEnvDescriptor::load	(CEnvironment& environment, CInifile& config)
 	rain_type				= 
 		config.line_exist(m_identifier.c_str(), "rain_type") ? config.r_string(m_identifier.c_str(), "rain_type") : "default";
 
-	rain_density			= config.r_float	(m_identifier.c_str(),"rain_density");
-      
-    
-    
-if (psDeviceFlags.test(rsR4))
-{
-    rain_density			= rain_density*3.f;    
-} 
-    
-    clamp(rain_density,0.f,1.f);
+	rain_density			= config.r_float	(m_identifier.c_str(),"rain_density");		clamp(rain_density,0.f,1.f);
 	rain_color				= config.r_fvector3	(m_identifier.c_str(),"rain_color");      
 
 	rain_angle = config.line_exist(m_identifier.c_str(), "rain_angle") ? config.r_float(m_identifier.c_str(), "rain_angle") : 0.0f;
