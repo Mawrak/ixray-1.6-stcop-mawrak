@@ -1367,12 +1367,6 @@ player_hud::player_hud(bool invert)
 
 player_hud::~player_hud()
 {
-	if (m_model)
-	{
-	IRenderVisual* v			= m_model->dcast_RenderVisual();
-	::Render->model_Delete		(v);
-	}
-
 	xr_vector<attachable_hud_item*>::iterator it	= m_pool.begin();
 	xr_vector<attachable_hud_item*>::iterator it_e	= m_pool.end();
 	for(;it!=it_e;++it)
