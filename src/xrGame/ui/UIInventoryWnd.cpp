@@ -207,7 +207,7 @@ EListType CUIInventoryWnd::GetType(CUIDragDropListEx* l)
 
 void CUIInventoryWnd::PlaySnd(eInventorySndAction a)
 {
-	if (sounds[a]._handle())
+	if (sounds[a].handle())
         sounds[a].play					(nullptr, sm_2D);
 }
 

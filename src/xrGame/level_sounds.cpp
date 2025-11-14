@@ -127,7 +127,7 @@ void SMusicTrack::Play()
 
 BOOL SMusicTrack::IsPlaying()
 {
-	return (m_SourceStereo._feedback() || m_SourceLeft._feedback());
+	return (m_SourceStereo.is_playing() || m_SourceLeft.is_playing());
 }
 
 void SMusicTrack::SetVolume(float volume)

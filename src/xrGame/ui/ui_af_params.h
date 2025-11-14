@@ -50,7 +50,7 @@ protected:
 
 // -----------------------------------
 
-class UIArtefactParamItem final : public CUIWindow
+class UIArtefactParamItem final : public CUIStatic
 {
 public:
 				UIArtefactParamItem	();

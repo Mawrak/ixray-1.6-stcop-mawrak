@@ -1677,6 +1677,6 @@ void CUICarBodyWnd::SendEvent_Item2Ruck(PIItem pItem, u16 recipient)
 
 void CUICarBodyWnd::PlaySnd(eCarBodySndAction a)
 {
-	if (sounds[a]._handle())
+	if (sounds[a].handle())
         sounds[a].play					(nullptr, sm_2D);
 }
