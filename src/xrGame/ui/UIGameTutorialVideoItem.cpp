@@ -156,11 +156,13 @@ void CUISequenceVideoItem::Update()
 			if (m_flags.test(etiNeedStart))
 			{
 				if (m_sound.handle())
-					m_sound.play_at_pos		(nullptr, Fvector().set(0.0f,0.f,0.0f), sm_Intro);
+					m_sound.play		(nullptr, sm_Intro);
 				else
 				{
-					m_sound_mono[0].play_at_pos(nullptr, Fvector().set(-0.5f, 0.f, 0.3f), sm_Intro);
-					m_sound_mono[1].play_at_pos(nullptr, Fvector().set(+0.5f, 0.f, 0.3f), sm_Intro);
+					m_sound_mono[0].play(nullptr, sm_Intro);
+					XRay::Sound::Mixer::SetPanning(m_sound_mono[0].slot(), 1.0f, 0.f);
+					m_sound_mono[1].play(nullptr, sm_Intro);
+					XRay::Sound::Mixer::SetPanning(m_sound_mono[1].slot(), 0.f, 1.0f);
 				}
 				m_texture->video_Play	(FALSE, m_sync_time);
 				m_flags.set				(etiNeedStart,FALSE);

@@ -116,11 +116,13 @@ BOOL SMusicTrack::in(u32 game_time)
 void SMusicTrack::Play()
 {
 	if (m_SourceStereo.handle())
-		m_SourceStereo.play_at_pos	(0,Fvector().set(0.0f,0.0f,0.0f), sm_Intro);
+		m_SourceStereo.play	(0, sm_Intro);
 	else
 	{
-		m_SourceLeft.play_at_pos(0, Fvector().set(-0.5f, 0.f, 0.3f), sm_Intro);
-		m_SourceRight.play_at_pos(0, Fvector().set(+0.5f, 0.f, 0.3f), sm_Intro);
+		m_SourceLeft.play(0, sm_Intro);
+		XRay::Sound::Mixer::SetPanning(m_SourceLeft.slot(), 1.0f, 0.f);
+		m_SourceRight.play(0, sm_Intro);
+		XRay::Sound::Mixer::SetPanning(m_SourceRight.slot(), 0.f, 1.0f);
 	}
 	SetVolume					(1.0f);
 }

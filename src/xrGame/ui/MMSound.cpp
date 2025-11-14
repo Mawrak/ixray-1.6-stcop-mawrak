@@ -72,29 +72,30 @@ void CMMSound::music_Play()
 	if (FS.exist("$game_sounds$", _path))
 	{
 		m_music_stereo.create(_path,st_Music,sg_SourceType);
-   		m_music_stereo.play(nullptr, sm_Intro|sm_Looped);
+   		m_music_stereo.play(nullptr, sm_Intro | sm_Looped);
 	}
 	else
 	{
-		string_path		_path;
-		string_path		_path2;
-		xr_strconcat(_path, m_play_list[i].c_str(), "_l.ogg");
-		xr_strconcat(_path2, m_play_list[i].c_str(), "_r.ogg");
-		VERIFY(FS.exist("$game_sounds$", _path));
-		VERIFY(FS.exist("$game_sounds$", _path2));
+		string_path		_path_l;
+		string_path		_path_r;
+		xr_strconcat(_path_l, m_play_list[i].c_str(), "_l.ogg");
+		xr_strconcat(_path_r, m_play_list[i].c_str(), "_r.ogg");
+		VERIFY(FS.exist("$game_sounds$", _path_l));
+		VERIFY(FS.exist("$game_sounds$", _path_r));
 
-		m_music_l.create(_path, st_Music, sg_SourceType);
-		m_music_r.create(_path2, st_Music, sg_SourceType);
+		m_music_l.create(_path_l, st_Music, sg_SourceType);
+		m_music_r.create(_path_r, st_Music, sg_SourceType);
 
-		m_music_l.play_at_pos(nullptr, Fvector().set(-0.5f, 0.f, 0.3f), sm_2D);
-		m_music_r.play_at_pos(nullptr, Fvector().set(+0.5f, 0.f, 0.3f), sm_2D);
-
+		m_music_l.play(nullptr, sm_Intro | sm_Looped);
+		XRay::Sound::Mixer::SetPanning(m_music_l.slot(), 1.0f, 0.f);
+		m_music_r.play(nullptr, sm_Intro | sm_Looped);
+		XRay::Sound::Mixer::SetPanning(m_music_r.slot(), 0.f, 1.0f);
 	}
 }
 
 void CMMSound::music_Update()
 {
-	if (Device.Paused()) return;
+	if (Device.Paused() || !Device.b_is_Active) return;
 
 	if ( (m_music_stereo.handle() && !m_music_stereo.is_playing()) || (m_music_l.handle() && !m_music_l.is_playing()) || (m_music_r.handle() && !m_music_r.is_playing()) )
 		music_Play();
