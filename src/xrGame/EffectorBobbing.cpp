@@ -8,6 +8,8 @@ constexpr const char* BOBBING_SECT = "bobbing_effector";
 constexpr float CROUCH_FACTOR = 0.75f;
 constexpr float SPEED_REMINDER = 5.0f;
 
+float g_bobbing_factor = 1.0f;
+
 CEffectorBobbing::CEffectorBobbing() : CEffectorCam(eCEBobbing, 10000.0f)
 {
     Sprint.Amplitude.Default = READ_IF_EXISTS(pSettings, r_float, BOBBING_SECT, "sprint_amplitude", 0.0f);
@@ -93,8 +95,8 @@ BOOL CEffectorBobbing::ProcessCam(SCamEffectorInfo& info)
 
         SelectBobbingParams(m_bZoomMode, is_limping, fOldPhase, fOldFreq, fOldAmp, dwMState, fTime, A, ST);
 
-        float _sinA = _abs(_sin(ST) * A) * fReminderFactor;
-        float _cosA = _cos(ST) * A * fReminderFactor;
+        float _sinA = _abs(_sin(ST) * A) * fReminderFactor * g_bobbing_factor;
+        float _cosA = _cos(ST) * A * fReminderFactor * g_bobbing_factor;
 
         // apply footstep bobbing effect
         Fvector dangle;
