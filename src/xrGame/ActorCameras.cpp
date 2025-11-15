@@ -440,8 +440,10 @@ void CActor::cam_Update(float dt, float fFOV)
 
 	float camera_h = CameraHeight();
 
+	CorrectActorCameraHeight(camera_h);
+
 	// Alex ADD: smooth crouch
-	static const float HeightInterpolationSpeed = 4.0f;
+	static const float HeightInterpolationSpeed = 8.0f;
 
 	if (CurrentHeight < 0.0f)
 	{
@@ -454,8 +456,6 @@ void CActor::cam_Update(float dt, float fFOV)
 	}
 
 	camera_h = CurrentHeight;
-
-	CorrectActorCameraHeight(camera_h);
 
 	Fvector point = { 0, camera_h + current_ik_cam_shift, 0 };
 	Fvector dangle		= {0,0,0};
