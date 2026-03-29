@@ -1979,13 +1979,19 @@ void CActor::UpdatePlayerHud()
 			CHudItem* pHudItem = smart_cast<CHudItem*>(pInvItem);
 			if (pHudItem)
 			{
-				if (pHudItem->IsHidden())
+				if (pHudItem->GetHUD())
 				{
-					g_player_hud->detach_item(pHudItem);
 				}
 				else
 				{
-					g_player_hud->attach_item(pHudItem);
+					if (pHudItem->IsHidden())
+					{
+						g_player_hud->detach_item(pHudItem);
+					}
+					else
+					{
+						g_player_hud->attach_item(pHudItem);
+					}
 				}
 			}
 		}
@@ -2608,6 +2614,12 @@ extern	BOOL	g_ShowAnimationInfo		;
 
 void CActor::OnHUDDraw(CCustomHUD* Z)
 {
+	CHudItem* pHudItem = inventory().ActiveItem() ? inventory().ActiveItem()->cast_hud_item() : nullptr;
+	if (pHudItem && pHudItem->GetHUD() && pHudItem->GetHUDmode())
+	{
+		inventory().ActiveItem()->renderable_Render();
+	}
+
 	R_ASSERT(IsFocused());
 
 	if (!((mstate_real & mcLookout) && !IsGameTypeSingleCompatible()))

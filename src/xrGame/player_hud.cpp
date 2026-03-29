@@ -1317,9 +1317,12 @@ player_hud::player_hud(bool invert)
 
 player_hud::~player_hud()
 {
-	IRenderVisual* v			= m_model->dcast_RenderVisual();
-	::Render->model_Delete		(v);
-	m_model						= nullptr;
+	if (m_model)
+	{
+		IRenderVisual* v = m_model->dcast_RenderVisual();
+		::Render->model_Delete(v);
+		m_model = nullptr;
+	}
 
 	xr_vector<attachable_hud_item*>::iterator it	= m_pool.begin();
 	xr_vector<attachable_hud_item*>::iterator it_e	= m_pool.end();
@@ -1365,12 +1368,14 @@ void player_hud::load(const shared_str& player_hud_sect)
 
 	m_sect_name = player_hud_sect;
 
-	const shared_str& model_name = pSettings->r_string(player_hud_sect, "visual");
+	const shared_str& model_name = READ_IF_EXISTS(pSettings, r_string, player_hud_sect, "visual", nullptr);
 
-	m_model = smart_cast<IKinematicsAnimated*>(::Render->model_Create(model_name.c_str()));
-
+	if (model_name.size())
+	{
+		m_model = ::Render->model_Create(model_name.c_str())->dcast_PKinematicsAnimated();
+	}
 	auto pathOmfs = EngineExternal().GetPlayerHudOmfAdditional();
-	if (pathOmfs && pathOmfs[0])
+	if (m_model && pathOmfs && pathOmfs[0])
 	{
 		string_path nm = {};
 		for (int i = 0, n = _GetItemCount(pathOmfs); i < n; ++i)
@@ -1381,53 +1386,63 @@ void player_hud::load(const shared_str& player_hud_sect)
 	}
 
 
-	if(pSettings->line_exist(player_hud_sect, "legs_visual")) {
+	if(pSettings->line_exist(player_hud_sect, "legs_visual")) 
+	{
 		auto model_name = pSettings->r_string(player_hud_sect, "legs_visual");
 		m_legs_model = PKinematics(::Render->model_Create(model_name));
 	}
 
-	u16 l_arm = m_model->dcast_PKinematics()->LL_BoneID("l_clavicle");
-	if(l_arm != BI_NONE) {
-		m_model->dcast_PKinematics()->LL_GetBoneInstance(l_arm).set_callback(bctCustom, [](CBoneInstance* B) {g_player_hud->LeftArmCallback(B); }, NULL);
-	}
-
-	auto& _sect = pSettings->r_section(player_hud_sect);
-	auto _b = _sect.Data.begin();
-	auto _e = _sect.Data.end();
-
-	m_ancors.clear();
-
-	for(; _b != _e; ++_b) 
+	if (m_model)
 	{
-		if(strstr(_b->first.c_str(), "ancor_") == _b->first.c_str())
+		u16 l_arm = m_model->dcast_PKinematics()->LL_BoneID("l_clavicle");
+		if (l_arm != BI_NONE)
 		{
-			const shared_str& _bone = _b->second;
-			m_ancors.push_back(m_model->dcast_PKinematics()->LL_BoneID(_bone));
-		}
-	}
-
-	if(!b_reload) {
-		m_model->PlayCycle("hand_idle_doun");
-	}
-	else {
-		if(m_attached_items[1]) {
-			m_attached_items[1]->m_parent_hud_item->on_a_hud_attach();
+			m_model->dcast_PKinematics()->LL_GetBoneInstance(l_arm).set_callback(bctCustom, [](CBoneInstance* B) {g_player_hud->LeftArmCallback(B); }, NULL);
 		}
 
-		if(m_attached_items[0]) {
-			m_attached_items[0]->m_parent_hud_item->on_a_hud_attach();
+		auto& _sect = pSettings->r_section(player_hud_sect);
+		auto _b = _sect.Data.begin();
+		auto _e = _sect.Data.end();
+
+		m_ancors.clear();
+
+		for (; _b != _e; ++_b)
+		{
+			if (strstr(_b->first.c_str(), "ancor_") == _b->first.c_str())
+			{
+				const shared_str& _bone = _b->second;
+				m_ancors.push_back(m_model->dcast_PKinematics()->LL_BoneID(_bone));
+			}
 		}
+
+		if (!b_reload) {
+			m_model->PlayCycle("hand_idle_doun");
+		}
+		else
+		{
+			if (m_attached_items[1])
+			{
+				m_attached_items[1]->m_parent_hud_item->on_a_hud_attach();
+			}
+
+			if (m_attached_items[0])
+			{
+				m_attached_items[0]->m_parent_hud_item->on_a_hud_attach();
+			}
+		}
+
+		m_model->dcast_PKinematics()->CalculateBones_Invalidate();
+		m_model->dcast_PKinematics()->CalculateBones(TRUE);
 	}
 
-	m_model->dcast_PKinematics()->CalculateBones_Invalidate();
-	m_model->dcast_PKinematics()->CalculateBones(TRUE);
-
-	if(m_legs_model) {
+	if(m_legs_model) 
+	{
 		m_legs_model->CalculateBones_Invalidate();
 		m_legs_model->CalculateBones(TRUE);
 	}
 
-	if(Actor()) {
+	if(Actor()) 
+	{
 		float m_fLegs_shift = READ_IF_EXISTS(pSettings, r_float, "actor_hud", "legs_shift_delta", -0.55f);
 		Actor()->m_fLegs_shift = READ_IF_EXISTS(pSettings, r_float, player_hud_sect, "legs_shift_delta", m_fLegs_shift);
 	}

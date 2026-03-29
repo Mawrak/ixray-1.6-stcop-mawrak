@@ -129,6 +129,16 @@ void CWeaponRPG7::UpdateMissileVisibility()
 	{
 		HudItemData()->set_bone_visible(m_sHudGrenadeBoneName, vis_hud, TRUE);
 	}
+	else if (m_pHUD)
+	{
+		IKinematics* pHudVisual = m_pHUD->Visual()->dcast_PKinematics();
+		VERIFY(pHudVisual);
+		if (H_Parent() != Level().CurrentEntity()) 
+			pHudVisual = nullptr;
+
+		if (pHudVisual) 
+			pHudVisual->LL_SetBoneVisible(pHudVisual->LL_BoneID(m_sHudGrenadeBoneName), vis_hud, TRUE);
+	}
 
 	IKinematics* pWeaponVisual = PKinematics(Visual());
 	VERIFY(pWeaponVisual);
@@ -326,7 +336,7 @@ void CWeaponRPG7::ReactiveHit()
 void CWeaponRPG7::PlayAnimReload()
 {
 	VERIFY(GetState()==eReload);
-	PlayHUDMotion("anm_reload", EHudMixType::eNoMix, GetState());
+	PlayHUDMotion("anm_reload", "anim_reload", EHudMixType::eNoMix, GetState());
 }
 
 void CWeaponRPG7::OnEvent(NET_Packet& P, u16 type) 

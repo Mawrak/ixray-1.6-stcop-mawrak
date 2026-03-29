@@ -293,9 +293,9 @@ void CWeaponShotgun::switch2_EndReload()
 	}
 }
 
-shared_str CWeaponShotgun::SelectOpenWeaponAnimation()
+shared_str CWeaponShotgun::SelectOpenWeaponAnimation(const shared_str& first_name)
 {
-	shared_str anim = "anm_open";
+	shared_str anim = first_name;
 
 	if (ParentIsActor())
 	{
@@ -322,12 +322,12 @@ void CWeaponShotgun::PlayAnimOpenWeapon()
 {
 	VERIFY(GetState() == eReload);
 
-	PlayHUDMotion(SelectOpenWeaponAnimation(), EHudMixType::eNoMix, eReload);
+	PlayHUDMotion(SelectOpenWeaponAnimation("anm_open"), SelectOpenWeaponAnimation("anim_open_weapon"), EHudMixType::eNoMix, eReload);
 }
 
-shared_str CWeaponShotgun::SelectAddCartridgeWeaponAnimation()
+shared_str CWeaponShotgun::SelectAddCartridgeWeaponAnimation(const shared_str& first_name)
 {
-	shared_str anim = "anm_add_cartridge";
+	shared_str anim = first_name;
 
 	if (ParentIsActor())
 	{
@@ -349,12 +349,12 @@ void CWeaponShotgun::PlayAnimAddOneCartridgeWeapon()
 {
 	VERIFY(GetState() == eReload);
 
-	PlayHUDMotion(SelectAddCartridgeWeaponAnimation(), EHudMixType::eNoMix, eReload);
+	PlayHUDMotion(SelectAddCartridgeWeaponAnimation("anm_add_cartridge"), SelectAddCartridgeWeaponAnimation("anim_add_cartridge"), EHudMixType::eNoMix, eReload);
 }
 
-shared_str CWeaponShotgun::SelectCloseWeaponAnimation()
+shared_str CWeaponShotgun::SelectCloseWeaponAnimation(const shared_str& first_name)
 {
-	shared_str anim = "anm_close";
+	shared_str anim = first_name;
 
 	if (ParentIsActor())
 	{
@@ -376,7 +376,7 @@ void CWeaponShotgun::PlayAnimCloseWeapon()
 {
 	VERIFY(GetState() == eReload);
 
-	PlayHUDMotion(SelectCloseWeaponAnimation(), EHudMixType::eNoMix, eReload);
+	PlayHUDMotion(SelectCloseWeaponAnimation("anm_close"), SelectCloseWeaponAnimation("anim_close_weapon"), EHudMixType::eNoMix, eReload);
 }
 
 BOOL CWeaponShotgun::net_Spawn(CSE_Abstract* DC)
