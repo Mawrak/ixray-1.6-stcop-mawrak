@@ -380,8 +380,25 @@ void CUIHudStatesWnd::InitFromXml( CUIXml& xml, const char* path )
         m_use_adaptive_ammo_widget = false;
     }
 
-    m_ui_weapon_ammo_color_active = CUIXmlInit::GetColor(xml, "active_ammo_color", 0, color_rgba(238, 155, 23, 255));
-    m_ui_weapon_ammo_color_inactive = CUIXmlInit::GetColor(xml, "inactive_ammo_color", 0, color_rgba(238, 155, 23, 150));
+    // HACK: St4lker0k765: idk why, but default values in CUIXmlInit::GetColor are glitchy as hell, so i'll try this instead
+    if (xml.NavigateToNode("active_ammo_color", 0))
+    {
+        m_ui_weapon_ammo_color_active = CUIXmlInit::GetColor(xml, "active_ammo_color", 0, color_rgba(238, 155, 23, 255));
+    }
+    else
+    {
+        m_ui_weapon_ammo_color_active = color_rgba(238, 155, 23, 255);
+    }
+
+    if (xml.NavigateToNode("inactive_ammo_color", 0))
+    {
+        m_ui_weapon_ammo_color_inactive = CUIXmlInit::GetColor(xml, "inactive_ammo_color", 0, color_rgba(238, 155, 23, 150));
+    }
+    else
+    {
+        m_ui_weapon_ammo_color_inactive = color_rgba(238, 155, 23, 150);
+    }
+
 
     // Fire mode HUD: optional icon mode or localized text labels (explicit XML flags).
     if (xml.NavigateToNode("static_fire_mode", 0))
@@ -955,10 +972,7 @@ void CUIHudStatesWnd::UpdateActiveItemInfo(CActor* actor)
             {
                 if (m_ui_weapon_icon)
                 {
-					m_ui_weapon_icon->TextureOn();
-					m_ui_weapon_icon->SetText("");
-					m_ui_weapon_icon->SetTextureColor(color_rgba(255, 255, 255, 255));
-					SetAmmoIcon(item->m_section_id);
+                    SetAmmoIcon(item->m_section_id);
                 }
             }
             if (m_static_weapon)

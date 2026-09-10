@@ -8,6 +8,11 @@
 
 #pragma once
 
+IC	u32 CAutosaveManager::autosave_interval		() const
+{
+	return					(m_autosave_interval);
+}
+
 IC	u32 CAutosaveManager::last_autosave_time	() const
 {
 	return					(m_last_autosave_time);

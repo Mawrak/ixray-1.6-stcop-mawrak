@@ -15,140 +15,129 @@ ILevelGraph::~ILevelGraph()
 
 bool ILevelGraph::Search(u32 start_vertex_id, u32 dest_vertex_id, xr_vector<u32>& OutPath, float MaxRange, u32 MaxIterationCount, u32 MaxVisitedNodeCount) const
 {
-	PROF_EVENT("AStar Search");
+	// Используем более эффективные структуры данных
+	struct ComparePriority {
+		bool operator()(const std::pair<float, u32>& a, const std::pair<float, u32>& b) const {
+			return a.first > b.first; // min-heap
+		}
+	};
 
-	CTimer timer;
-	timer.Start();
+	thread_local std::priority_queue<std::pair<float, u32>,
+		xr_vector<std::pair<float, u32>>,
+		ComparePriority> TempPriorityNode;
 
-	if (start_vertex_id == dest_vertex_id)
-	{
-		OutPath.clear();
+	thread_local std::pmr::unordered_map<u32, u32> TempCameFrom;
+	thread_local std::pmr::unordered_map<u32, float> TempCostSoFar;
+
+	// Используем memory pool с очисткой между вызовами
+	thread_local std::pmr::unsynchronized_pool_resource pool_resource;
+	thread_local bool initialized = false;
+
+	if (!initialized) {
+		TempCameFrom = std::pmr::unordered_map<u32, u32>{ &pool_resource };
+		TempCostSoFar = std::pmr::unordered_map<u32, float>{ &pool_resource };
+		initialized = true;
+	}
+
+	const float m_distance_xz = header().cell_size();
+
+	TempPriorityNode = {};
+	TempCameFrom.clear();
+	TempCostSoFar.clear();
+	OutPath.clear();
+
+	u32 FromID = start_vertex_id;
+	u32 ToID = dest_vertex_id;
+
+	if (FromID == ToID) {
 		OutPath.push_back(start_vertex_id);
 		return true;
 	}
 
-	if (!is_accessible(start_vertex_id) || !is_accessible(dest_vertex_id))
-	{
+	if (!is_accessible(FromID) || !is_accessible(ToID)) {
 		return false;
 	}
 
-	struct ComparePriority
-	{
-		bool operator()(const std::pair<float, u32>& a, const std::pair<float, u32>& b) const
-		{
-			return a.first > b.first;
-		}
-	};
+	// Предварительно вычисляем позицию целевого узла
+	CVertex* target_vertex = vertex(ToID);
+	float target_x, target_z;
+	unpack_xz(target_vertex, target_x, target_z);
 
-	thread_local std::priority_queue<std::pair<float, u32>, xr_vector<std::pair<float, u32>>, ComparePriority> PriorityQueue;
+	TempPriorityNode.push({ 0.f, FromID });
+	TempCameFrom[FromID] = FromID;
+	TempCostSoFar[FromID] = 0.f;
 
-	thread_local std::pmr::unordered_map<u32, u32> CameFrom;
-	thread_local std::pmr::unordered_map<u32, float> CostFar;
-	thread_local std::pmr::unordered_set<u32> ClosedPath;
-	thread_local std::pmr::unsynchronized_pool_resource ResPool;
-	thread_local bool IsInitialized = false;
+	auto CalcCost = [m_distance_xz](CVertex*, CVertex*) {
+		return m_distance_xz;
+		};
 
-	if (!IsInitialized)
-	{
-		CameFrom = std::pmr::unordered_map<u32, u32>{&ResPool};
-		CostFar = std::pmr::unordered_map<u32, float>{&ResPool};
-		ClosedPath = std::pmr::unordered_set<u32>{&ResPool};
-		IsInitialized = true;
-	}
+	auto DistanceNode = [this, m_distance_xz, target_x, target_z](CVertex* Node) {
+		float x1, y1;
+		unpack_xz(Node, x1, y1);
+		return m_distance_xz * 2 * (fabs(x1 - target_x) + fabs(y1 - target_z));
+		};
 
-	const float Cell = header().cell_size();
+	while (!TempPriorityNode.empty() && MaxIterationCount > 0) {
+		u32 CurrentNodeID = TempPriorityNode.top().second;
+		TempPriorityNode.pop();
 
-	PriorityQueue = {};
-	CameFrom.clear();
-	CostFar.clear();
-	ClosedPath.clear();
-	OutPath.clear();
-
-	float tx, tz;
-	unpack_xz(vertex(dest_vertex_id), tx, tz);
-
-	auto Heuristic = [&](u32 id) -> float
-	{
-		float x, z;
-		unpack_xz(vertex(id), x, z);
-		return Cell * 2.f * (fabsf(x - tx) + fabsf(z - tz));
-	};
-
-	PriorityQueue.push({0.f, start_vertex_id});
-	CameFrom[start_vertex_id] = start_vertex_id;
-	CostFar[start_vertex_id] = 0.f;
-
-	u32 Iterations = 0;
-	u32 MaxQueue = 0;
-
-	while (!PriorityQueue.empty() && Iterations < MaxIterationCount)
-	{
-		const u32 CurPriorityQueue = PriorityQueue.top().second;
-		PriorityQueue.pop();
-		++Iterations;
-
-		if (PriorityQueue.size() > MaxQueue)
-		{
-			MaxQueue = (u32)PriorityQueue.size();
-		}
-
-		if (ClosedPath.contains(CurPriorityQueue))
-		{
-			continue;
-		}
-		ClosedPath.insert(CurPriorityQueue);
-
-		if (CurPriorityQueue == dest_vertex_id)
-		{
-			u32 LocalVertID = dest_vertex_id;
-			while (LocalVertID != start_vertex_id)
-			{
-				OutPath.push_back(LocalVertID);
-				LocalVertID = CameFrom[LocalVertID];
+		if (CurrentNodeID == ToID) {
+			// Восстанавливаем путь
+			u32 NextNode = ToID;
+			while (NextNode != FromID) {
+				OutPath.insert(OutPath.begin(), NextNode);
+				NextNode = TempCameFrom[NextNode];
 			}
-			OutPath.push_back(start_vertex_id);
-			std::reverse(OutPath.begin(), OutPath.end());
-
+			OutPath.insert(OutPath.begin(), NextNode);
 			return true;
 		}
 
-		CVertex* Node = vertex(CurPriorityQueue);
-		const float CurCost = CostFar[CurPriorityQueue];
+		CVertex* Node = vertex(CurrentNodeID);
 
-		for (int Iter = 0; Iter < 4; ++Iter)
-		{
-			const u32 NodeLink = Node->link(Iter);
-			if (!is_accessible(NodeLink))
-			{
-				continue;
-			}
-			if (ClosedPath.contains(NodeLink))
-			{
+		for (s32 NeighborIndex = 0; NeighborIndex < 4; NeighborIndex++) {
+			u32 NeighborID = Node->link(NeighborIndex);
+			if (!is_accessible(NeighborID)) {
 				continue;
 			}
 
-			const float NewCost = CurCost + Cell;
+			CVertex* Neighbor = vertex(NeighborID);
+			float NewCost = TempCostSoFar[CurrentNodeID] + CalcCost(Node, Neighbor);
 
-			auto Nit = CostFar.find(NodeLink);
-			if (Nit != CostFar.end() && Nit->second <= NewCost)
-			{
+			auto cost_it = TempCostSoFar.find(NeighborID);
+			if (cost_it != TempCostSoFar.end() && cost_it->second <= NewCost) {
+				continue; // Уже есть лучший путь
+			}
+
+			// Проверяем лимит посещённых узлов
+			if (TempCostSoFar.size() >= MaxVisitedNodeCount) {
 				continue;
 			}
 
-			if (CostFar.size() >= MaxVisitedNodeCount)
-			{
+			// Проверяем диапазон
+			const float Distance = DistanceNode(Neighbor);
+			if (Distance > MaxRange) {
 				continue;
 			}
 
-			const float h = Heuristic(NodeLink);
-			if (h > MaxRange)
-			{
-				continue;
+			// Обновляем или добавляем стоимость
+			if (cost_it != TempCostSoFar.end()) {
+				cost_it->second = NewCost;
+			}
+			else {
+				TempCostSoFar[NeighborID] = NewCost;
 			}
 
-			CostFar[NodeLink] = NewCost;
-			CameFrom[NodeLink] = CurPriorityQueue;
-			PriorityQueue.push({NewCost + h, NodeLink});
+			// Добавляем в очередь с приоритетом
+			float priority = NewCost + Distance;
+			TempPriorityNode.push({ priority, NeighborID });
+
+			// Обновляем информацию о пути
+			TempCameFrom[NeighborID] = CurrentNodeID;
+
+			// Уменьшаем счётчик итераций
+			if (--MaxIterationCount == 0) {
+				break;
+			}
 		}
 	}
 
@@ -157,10 +146,10 @@ bool ILevelGraph::Search(u32 start_vertex_id, u32 dest_vertex_id, xr_vector<u32>
 
 u32 ILevelGraph::SearchNearestVertex(u32 VertexID, const Fvector& TargetPosition, float Range) const
 {
-	thread_local xr_vector<std::pair<float, u32>> TempPriorityNode;
-	thread_local xr_map<u32, u32> TempCameFrom;
-	thread_local xr_map<u32, float> TempCostSoFar;
-	float DistanceXZ = header().cell_size();
+	thread_local	xr_vector<std::pair<float, u32>>	TempPriorityNode;
+	thread_local	xr_map<u32, u32>					TempCameFrom;
+	thread_local	xr_map<u32, float>					TempCostSoFar;
+					float								m_distance_xz			= header().cell_size();
 
 	float BestDistanceToTarget = flt_max;
 
@@ -174,17 +163,16 @@ u32 ILevelGraph::SearchNearestVertex(u32 VertexID, const Fvector& TargetPosition
 	u32 x0,y0;
 	unpack_xz(vertex(VertexID),x0,y0);
 	
-	int MaxRangeSqr = iFloor(_sqr(Range)/ _sqr(DistanceXZ) + .5f);
+	int MaxRangeSqr = iFloor(_sqr(Range)/ _sqr(m_distance_xz) + .5f);
 
 	TempPriorityNode.push_back({0.f, FromID});
 	TempCameFrom.insert({FromID, FromID});
 	TempCostSoFar.insert( {FromID, 0.f });
 
-	auto CalcCostLambda = [DistanceXZ](CVertex* Node1,CVertex* Node2)
+	auto CalcCost = [m_distance_xz](CVertex* Node1,CVertex* Node2)
 	{
-		return DistanceXZ;
+		return m_distance_xz;
 	};
-
 	auto IsAccessible = [this,x0,y0,MaxRangeSqr](u32 NodeID)
 	{
 		if(!is_accessible(NodeID))
@@ -218,7 +206,7 @@ u32 ILevelGraph::SearchNearestVertex(u32 VertexID, const Fvector& TargetPosition
 
 
 			CVertex* Neighbor = vertex(NeighborID);
-			float NewCost = TempCostSoFar[CurrentNodeID] + CalcCostLambda(Node, Neighbor);
+			float NewCost = TempCostSoFar[CurrentNodeID] + CalcCost(Node, Neighbor);
 			auto TempCostSoFarIterator = TempCostSoFar.find(NeighborID);
 			if ((TempCostSoFarIterator != TempCostSoFar.end() &&TempCostSoFarIterator->second > NewCost)|| (TempCostSoFarIterator == TempCostSoFar.end()))
 			{
@@ -258,11 +246,11 @@ u32	ILevelGraph::vertex(const Fvector& position) const
 	float					min_dist = flt_max;
 	u32						selected;
 	set_invalid_vertex(selected);
-	for (u32 Iter = 0; Iter < header().vertex_count(); ++Iter) {
-		float				dist = distance(Iter, position);
+	for (u32 i = 0; i < header().vertex_count(); ++i) {
+		float				dist = distance(i, position);
 		if (dist < min_dist) {
 			min_dist = dist;
-			selected = Iter;
+			selected = i;
 		}
 	}
 
@@ -284,7 +272,7 @@ u32 ILevelGraph::vertex(u32 current_node_id, const Fvector& position) const
 	if (valid_vertex_position(position)) {
 		// so, our position is inside the level graph bounding box
 		if (valid_vertex_id(current_node_id) && inside(vertex(current_node_id), position)) {
-			// so, our Node corresponds to the position
+			// so, our node corresponds to the position
 #ifndef AI_COMPILER
 			if (DevicePtr)
 			{
@@ -294,17 +282,17 @@ u32 ILevelGraph::vertex(u32 current_node_id, const Fvector& position) const
 			return				(current_node_id);
 		}
 
-		// so, our Node doesn't correspond to the position
+		// so, our node doesn't correspond to the position
 		// try to search it with O(logN) time algorithm
 		u32						_vertex_id = vertex_id(position);
 		if (valid_vertex_id(_vertex_id)) {
-			// so, there is a Node which corresponds with x and z to the position
+			// so, there is a node which corresponds with x and z to the position
 			bool				ok = true;
 			if (valid_vertex_id(current_node_id)) {
 				{
 					CVertex const& vertex = *this->vertex(current_node_id);
-					for (u32 Iter = 0; Iter < 4; ++Iter) {
-						if (vertex.link(Iter) == _vertex_id) {
+					for (u32 i = 0; i < 4; ++i) {
+						if (vertex.link(i) == _vertex_id) {
 #ifndef AI_COMPILER
 							if (DevicePtr)
 							{
@@ -317,8 +305,8 @@ u32 ILevelGraph::vertex(u32 current_node_id, const Fvector& position) const
 				}
 				{
 					CVertex const& vertex = *this->vertex(_vertex_id);
-					for (u32 Iter = 0; Iter < 4; ++Iter) {
-						if (vertex.link(Iter) == current_node_id) {
+					for (u32 i = 0; i < 4; ++i) {
+						if (vertex.link(i) == current_node_id) {
 #ifndef AI_COMPILER
 							if (DevicePtr)
 							{
@@ -367,7 +355,7 @@ u32 ILevelGraph::vertex(u32 current_node_id, const Fvector& position) const
 	}
 
 	if (!valid_vertex_id(current_node_id)) {
-		// so, we do not have a correct current Node
+		// so, we do not have a correct current node
 		// performing very slow full search
 		id = vertex(position);
 		VERIFY(valid_vertex_id(id));
@@ -386,7 +374,7 @@ u32 ILevelGraph::vertex(u32 current_node_id, const Fvector& position) const
 
 	// so, our position is outside the level graph bounding box
 	// or
-	// there is no Node for the current position
+	// there is no node for the current position
 	// try to search the nearest one iteratively
 	SContour			_contour;
 	Fvector				point;
@@ -394,10 +382,10 @@ u32 ILevelGraph::vertex(u32 current_node_id, const Fvector& position) const
 	contour(_contour, current_node_id);
 	nearest(point, position, _contour);
 	float				best_distance_sqr = position.distance_to_sqr(point);
-	const_iterator		Iter, e;
-	begin(current_node_id, Iter, e);
-	for (; Iter != e; ++Iter) {
-		u32				level_vertex_id = value(current_node_id, Iter);
+	const_iterator		i, e;
+	begin(current_node_id, i, e);
+	for (; i != e; ++i) {
+		u32				level_vertex_id = value(current_node_id, i);
 		if (!valid_vertex_id(level_vertex_id))
 			continue;
 
@@ -447,27 +435,27 @@ u32	ILevelGraph::vertex_id(const Fvector& position) const
 		u32				new_vertex_id = u32(I - B);
 		float			_y = vertex_plane_y(new_vertex_id, position.x, position.z);
 		if (y <= position.y) {
-			// so, current Node is under the specified position
+			// so, current node is under the specified position
 			if (_y <= position.y) {
-				// so, new Node is under the specified position
+				// so, new node is under the specified position
 				if (position.y - _y < position.y - y) {
-					// so, new Node is closer to the specified position
+					// so, new node is closer to the specified position
 					y = _y;
 					best_vertex_id = new_vertex_id;
 				}
 			}
 		}
 		else
-			// so, current Node is over the specified position
+			// so, current node is over the specified position
 			if (_y <= position.y) {
-				// so, new Node is under the specified position
+				// so, new node is under the specified position
 				y = _y;
 				best_vertex_id = new_vertex_id;
 			}
 			else
-				// so, new Node is over the specified position
+				// so, new node is over the specified position
 				if (_y - position.y < y - position.y) {
-					// so, new Node is closer to the specified position
+					// so, new node is closer to the specified position
 					y = _y;
 					best_vertex_id = new_vertex_id;
 				}
@@ -504,11 +492,11 @@ u32 ILevelGraph::guess_vertex_id(u32 const& current_vertex_id, Fvector const& po
 	u32 start_z = (u32)std::max(0, int(z) - max_guess_vertex_count);
 	u32 stop_z = std::min(max_z(), z + (u32)max_guess_vertex_count);
 
-	for (u32 Iter = start_x; Iter <= stop_x; ++Iter)
+	for (u32 i = start_x; i <= stop_x; ++i)
 	{
 		for (u32 j = start_z; j <= stop_z; ++j)
 		{
-			u32 test_xz = Iter * m_row_length + j;
+			u32 test_xz = i * m_row_length + j;
 			CVertex const* I = std::lower_bound(B, E, test_xz, [](const CVertex& vertex, u32 xz_value)
 			{
 				return vertex.position().xz() < xz_value;

@@ -623,11 +623,6 @@ void CAnomalyZone::UpdateWorkload	(u32 dt)
 	
 }
 
-float CAnomalyZone::shedule_Scale()
-{
-	return f_optimize_dist / FASTMODE_DISTANCE;
-}
-
 // ГГ берет артефакт с земли где то в пределах 160 метров от артефакта до аномалии
 void CAnomalyZone::OnActorTakeArtefact(float scan_radius, CArtefact* artefact, Fvector actorPos)
 {
@@ -877,7 +872,11 @@ void CAnomalyZone::UpdateCL()
 {
 	UpdateComponents(true);
 	inherited::UpdateCL();
-	UpdateWorkload(Device.dwTimeDelta);
+
+	if (m_zone_flags.test(eFastMode))
+	{
+		UpdateWorkload(Device.dwTimeDelta);
+	}
 }
 
 // called as usual
@@ -941,6 +940,18 @@ void CAnomalyZone::shedule_Update(u32 dt)
 		}
 
 		inherited::shedule_Update(dt);
+
+		// check "fast-mode" border
+		float	cam_distance	= Device.vCameraPosition.distance_to(P)-s.R;
+		
+		if (cam_distance>FASTMODE_DISTANCE && !m_zone_flags.test(eAlwaysFastmode) )	
+		{
+			o_switch_2_slow();
+		}
+		else									
+		{
+			o_switch_2_fast();
+		}
 
 		if (!m_zone_flags.test(eFastMode))
 		{

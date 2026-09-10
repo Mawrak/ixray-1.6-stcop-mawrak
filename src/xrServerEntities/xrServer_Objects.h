@@ -162,14 +162,10 @@
 //       CSE_ALifeTraderAbstract		added property m_deadbody_can_take, m_deadbody_closed
 // 127	 CSE_ALifeObjectClimable		added material;
 // 128	 CSE_ALifeObjectClimable		added can_fire in smart covers;
-// 129	 CSE_ALifeItemWeapon			added bMisfire
+// 129	 CSE_ALifeItemWeapon			added cur_scope
 //       CSE_AlifeCreatureActor         added IsWaunded and helicopter sync
-// 130	 CSE_ALifeItemWeapon			added rt_zoom_factor
-// 131	 CSE_ALifeItemWeapon			added cur_scope
-// 132	 CSE_ALifeItemWeapon			added chamber_ammo_type
-// 133	 CSE_ALifeItemWeapon			added a_chamber_elapsed
 //------------------------------------------------------------------------------
-#define SPAWN_VERSION u16(133)
+#define SPAWN_VERSION	u16(129)
 
 SERVER_ENTITY_DECLARE_BEGIN2(CSE_Shape,ISE_Shape,CShapeData)
 public:

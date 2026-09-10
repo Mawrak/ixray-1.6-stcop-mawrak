@@ -118,10 +118,6 @@ void CExplosive::Load(CInifile const *ini,const char* section)
 	m_fFragmentSpeed			= ini->r_float	(section,"fragment_speed"				);
 
 	m_layered_sounds.LoadSound(ini, section, "snd_explode", "sndExplode", false, m_eSoundExplode);
-	if (ini->line_exist(section, "snd_explode_indoor"))
-	{
-		m_layered_sounds.LoadSound(ini, section, "snd_explode_indoor", "sndExplodeIndoor", false, m_eSoundExplode);
-	}
 
 	m_fExplodeDurationMax	= ini->r_float(section, "explode_duration");
 
@@ -333,15 +329,7 @@ void CExplosive::Explode()
 	if (Initiator() != ALife::_OBJECT_ID(-1)) {
 		who = Level().Objects.net_Find(Initiator());
 	}
-
-	if (Sound->object_in_audiozone(pos) && m_layered_sounds.FindSoundItem("sndExplodeIndoor", false))
-	{
-		m_layered_sounds.PlaySound("sndExplodeIndoor", pos, who, false, false, true, (u8)-1);
-	}
-	else
-	{
-		m_layered_sounds.PlaySound("sndExplode", pos, who, false, false, true, (u8)-1);
-	}
+	m_layered_sounds.PlaySound("sndExplode", pos, who, false, false, true, (u8)-1);
 
 	//показываем эффекты
 

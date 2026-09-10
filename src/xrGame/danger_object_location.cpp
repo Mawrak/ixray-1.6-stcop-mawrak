@@ -10,47 +10,17 @@
 #include "danger_object_location.h"
 #include "GameObject.h"
 
-static bool IsObjectValid(const CGameObject* object, u16 object_id)
+const Fvector &CDangerObjectLocation::position	() const
 {
-	if (object == nullptr)
-	{
-		return false;
-	}
-
-	return g_pGameLevel->Objects.net_Find(object_id) == object;
+	return		(m_object->Position());
 }
 
-const Fvector& CDangerObjectLocation::position() const
+bool CDangerObjectLocation::useful				() const
 {
-	if (IsObjectValid(m_object, m_object_id))
-	{
-		m_cached_position = m_object->Position();
-	}
-
-	return (m_cached_position);
+	return		(true);
 }
 
-bool CDangerObjectLocation::useful() const
+bool CDangerObjectLocation::operator==			(const CObject *object) const
 {
-	if (IsObjectValid(m_object, m_object_id))
-	{
-		return true;
-	}
-
-	return (CDangerLocation::useful());
-}
-
-bool CDangerObjectLocation::operator==(const CObject* object) const
-{
-	if (object == nullptr)
-	{
-		return false;
-	}
-
-	if (m_object == object)
-	{
-		return true;
-	}
-
-	return (m_object_id == object->ID());
+	return		(m_object->ID() == object->ID());
 }

@@ -79,8 +79,8 @@ struct player_hud_motion_container final
 	attachable_hud_item_motion* find_item_motion(const shared_str& name);
 	bool has_motion(const shared_str& name);
 	void load(IKinematicsAnimated* model, const shared_str& sect, IKinematicsAnimated* item_model = nullptr);
-	void load_default_motions(IKinematicsAnimated* model, const CInifile::Item& data, const shared_str& sect);
-	void load_bonepart_motions(IKinematicsAnimated* model, const CInifile::Item& data, const shared_str& sect);
+	void load_default_motions(IKinematicsAnimated* model, const CInifile::Item& data);
+	void load_bonepart_motions(IKinematicsAnimated* model, const CInifile::Item& data);
 };
 
 struct weapon_inertion final
@@ -207,8 +207,6 @@ struct hud_item_measures final
 		float damping = 250.0f;
 		Fvector obb_scale = { 1.0f, 1.0f, 1.0f };
 		Fvector obb_pos = zero_vel;
-		float dist_min = 0.5f;
-		float dist_max = 0.8f;
 	} m_collision_params;
 
 	inertion_params m_inertion_params; //--#SM+#--
@@ -226,13 +224,24 @@ struct hud_item_measures final
 	void load						(const shared_str& sect_name, IKinematics* K, bool combined_model);
 };
 
+struct dbg_render_obb final : public pureRender
+{
+	xr_vector<Fobb> obbs{};
+	u32 color = 0xffffff;
+	ui_shader Primitives_Shader;
+
+	dbg_render_obb();
+	~dbg_render_obb();
+
+	virtual void OnRender() override;
+	void PushPoint_to_render(const Fvector& coords, const u32& color);
+	void append_obb(const Fobb& obb);
+	void draw_obbs();
+};
+
 struct attachable_hud_item final
 {
-	Fobb							m_collision_box;
-	Fvector							m_collision_inertia_pos = zero_vel;
-	Fvector							m_collision_inertia_pos_vel = zero_vel;
-	Fvector							m_collision_inertia_rot = zero_vel;
-	Fvector							m_collision_inertia_rot_vel = zero_vel;
+	dbg_render_obb obb_debug_info;
 	player_hud*						m_parent;
 	CHudItem*						m_parent_hud_item;
 	shared_str						m_sect_name;
@@ -265,8 +274,7 @@ struct attachable_hud_item final
 	void AddOffsets(weapon_inertion::base_params& base, Fvector& pos, Fvector& rot, float koef = 1.0f);
 	void AddSuicideOffset(weapon_inertion& inertion_params, const shared_str& section, Fvector& pos, Fvector& rot);
 
-			attachable_hud_item(player_hud* pparent)
-		: m_parent(pparent), m_upd_firedeps_frame(u32(-1)), m_parent_hud_item(NULL) {}
+			attachable_hud_item		(player_hud* pparent):m_parent(pparent),m_upd_firedeps_frame(u32(-1)),m_parent_hud_item(NULL){}
 			~attachable_hud_item	();
 	void load						(const shared_str& sect_name);
 	void update						(bool bForce);
@@ -606,7 +614,6 @@ struct movement_layer
 
 		if (name != anim_name)
 		{
-			Stop(true);
 			name = anim_name;
 			anim->Clear();
 			anim->Load(anim_name.c_str());
@@ -699,6 +706,8 @@ public:
 
 private:
 	void			update_inertion		(Fmatrix& trans);
+	void			update_additional	(Fmatrix& trans);
+private:
 	const Fvector&	attach_rot			() const;
 	const Fvector&	attach_pos			() const;
 

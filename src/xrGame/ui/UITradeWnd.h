@@ -62,6 +62,7 @@ protected:
 	//кнопки
 	CUI3tButton			UIPerformTradeButton;
 	CUI3tButton			UIToTalkButton;
+	bool				m_highlight_clear;
 
 	//информация о персонажах 
 	CUIStatic			UIOurIcon;

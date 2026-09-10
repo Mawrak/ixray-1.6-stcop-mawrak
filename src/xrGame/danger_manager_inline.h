@@ -17,14 +17,12 @@ IC	CDangerManager::CDangerManager							(CCreature *object)
 IC	void CDangerManager::reset								()
 {
 	m_objects.clear	();
-	m_selected_index = -1;
+	m_selected		= 0;
 }
 
 IC	const CDangerObject *CDangerManager::selected			() const
 {
-	if (m_selected_index >= 0 && (size_t)m_selected_index < m_objects.size())
-		return			(&m_objects[m_selected_index]);
-	return			(nullptr);
+	return			(m_selected);
 }
 
 IC	const CDangerManager::OBJECTS &CDangerManager::objects	() const

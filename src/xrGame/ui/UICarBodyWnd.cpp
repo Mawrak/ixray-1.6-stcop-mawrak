@@ -162,6 +162,7 @@ void CUICarBodyWnd::Init()
 	BindDragDropListEvents			(m_pUIOurBagList);
 	BindDragDropListEvents			(m_pUIOthersBagList);
 
+	m_highlight_clear = true;
 	clear_highlight_lists();
 
 	const char* pSelectorTextureName = "ui_inv_item_selector_sec";

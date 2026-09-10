@@ -25,6 +25,7 @@ class CUIInventoryWnd: public CUIActorMenuBase
 {
 private:
 	typedef CUIActorMenuBase inherited;
+	bool					m_b_need_reinit;
 public:
 							CUIInventoryWnd					();
 	virtual ~CUIInventoryWnd() = default;
@@ -32,6 +33,7 @@ public:
 	virtual void			Init							();
 
 	void					InitInventory					();
+	void					InitInventory_delayed			();
 
 	virtual void			SendMessage						(CUIWindow *pWnd, s16 msg, void *pData);
 
@@ -62,6 +64,7 @@ protected:
 	CUIStatic					UIStaticTimeString;
 
 	CUIStatic					UIStaticPersonal;
+	bool						m_highlight_clear;
 
 	CUIDragDropListEx*			m_pUIBagList;
 	CUIDragDropListEx*			m_pUIBeltList;

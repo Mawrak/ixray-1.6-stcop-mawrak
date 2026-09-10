@@ -295,6 +295,7 @@ public:
 
 	// Starting/Loading
 	virtual bool				net_Start				( const char* op_server, const char* op_client);
+	virtual void				net_Load				( const char* name );
 	virtual void				net_Save				( const char* name );
 	virtual void				net_Stop				( );
 	virtual bool				net_Start_client		( const char* name );

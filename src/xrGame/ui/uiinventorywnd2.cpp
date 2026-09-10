@@ -38,6 +38,12 @@ void CUIInventoryWnd::SendMessage(CUIWindow *pWnd, s16 msg, void *pData)
 	inherited::SendMessage(pWnd, msg, pData);
 }
 
+
+void CUIInventoryWnd::InitInventory_delayed()
+{
+	m_b_need_reinit = true;
+}
+
 void CUIInventoryWnd::InitInventory()
 {
 	CObject* current_entity = Level().CurrentEntity();
@@ -56,9 +62,10 @@ void CUIInventoryWnd::InitInventory()
 	{
 		if (CUIOutfitDragDropList* outfitSlot = smart_cast<CUIOutfitDragDropList*>(m_pInvList[OUTFIT_SLOT]))
 		{
-			outfitSlot->SetOutfit(m_pInvList[OUTFIT_SLOT]->ItemsCount() != 0 ? m_pInvList[OUTFIT_SLOT]->GetItemIdx(0) : nullptr);
+			outfitSlot->SetOutfit();
 		}
 	}
 
 	SetAreaSelectionTo				(m_pUIBagList);
+	m_b_need_reinit					= false;
 }  

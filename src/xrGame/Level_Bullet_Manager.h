@@ -71,7 +71,6 @@ struct SBullet
 
 	u32 m_dwID;
 	ref_sound m_whine_snd;
-	ref_sound m_ricochet_snd;
 	ref_sound m_mtl_snd;
 
 	u16 targetID;
@@ -135,8 +134,7 @@ class CBulletManager : public pureFrame
 	static void CalculateNewVelocity(Fvector& dest_new_vel, Fvector const& old_velocity, float ar, float life_time);
 
 protected:
-	SoundVec m_WhineSounds = {};
-	SoundVec m_RicochetSounds = {};
+	SoundVec m_WhineSounds;
 	RStringVec m_ExplodeParticles;
 
 	// список пуль находящихся в данный момент на уровне
@@ -179,7 +177,6 @@ protected:
 	ui_shader m_trj_shader;
 
 	void PlayWhineSound(SBullet* bullet, CObject* object, const Fvector& pos);
-	void PlayRicochetSound(SBullet* bullet, CObject* object, const Fvector& pos);
 	void PlayExplodePS(const Fmatrix& xf);
 	// функция обработки хитов объектов
 	static bool test_callback(const collide::ray_defs& rd, CObject* object, LPVOID params);

@@ -91,7 +91,7 @@ void player_hud_motion_container::load(IKinematicsAnimated* model, const shared_
 
 		if (strstr(data.first.c_str(), "anm_bp_") == data.first.c_str())
 		{
-			load_bonepart_motions(item_model, data, sect);
+			load_bonepart_motions(item_model, data);
 		}
 		else if (strstr(res.c_str(), "anm_") == res.c_str())
 		{
@@ -100,7 +100,7 @@ void player_hud_motion_container::load(IKinematicsAnimated* model, const shared_
 			itmTemp.first = res.c_str();
 			itmTemp.second = data.second;
 
-			load_default_motions(model, itmTemp, sect);
+			load_default_motions(model, itmTemp);
 		}
 	}
 
@@ -196,7 +196,7 @@ void player_hud_motion_container::load(IKinematicsAnimated* model, const shared_
 #endif
 }
 
-void player_hud_motion_container::load_default_motions(IKinematicsAnimated* model, const CInifile::Item& data, const shared_str& sect)
+void player_hud_motion_container::load_default_motions(IKinematicsAnimated* model, const CInifile::Item& data)
 {
 	player_hud_motion* pm = nullptr;
 
@@ -257,7 +257,7 @@ void player_hud_motion_container::load_default_motions(IKinematicsAnimated* mode
 		if (!motion_ID.valid() && i == 0)
 		{
 			motion_ID = model->ID_Cycle_Safe("hand_idle_doun");
-			Msg("! motion not found[%s] section [%s]", pm->m_base_name.c_str(), sect.c_str());
+			Msg("! motion not found[% s]", pm->m_base_name.c_str());
 		}
 
 		if (motion_ID.valid())
@@ -271,7 +271,7 @@ void player_hud_motion_container::load_default_motions(IKinematicsAnimated* mode
 	R_ASSERT2(pm->m_animations.size(), make_string<const char*>("motion not found [%s]", pm->m_base_name.c_str()));
 }
 
-void player_hud_motion_container::load_bonepart_motions(IKinematicsAnimated* model, const CInifile::Item& data, const shared_str& sect)
+void player_hud_motion_container::load_bonepart_motions(IKinematicsAnimated* model, const CInifile::Item& data)
 {
 	if (model == nullptr)
 	{
@@ -332,7 +332,7 @@ void player_hud_motion_container::load_bonepart_motions(IKinematicsAnimated* mod
 		if (!motion_ID.valid() && i == 0)
 		{
 			motion_ID = model->ID_Cycle_Safe("idle");
-			Msg("! motion not found[%s] section [%s]", ahim->m_name.c_str(), sect.c_str());
+			Msg("! motion not found[% s]", ahim->m_name.c_str());
 		}
 
 		if (motion_ID.valid())
@@ -412,74 +412,10 @@ void attachable_hud_item::update(bool bForce)
 
 void attachable_hud_item::update_hud_additional(Fmatrix& trans)
 {
-	if (m_parent_hud_item)
+	if(m_parent_hud_item)
 	{
 		m_parent_hud_item->UpdateHudAdditonal(trans);
 	}
-
-	m_collision_box.m_halfsize = m_measures.m_collision_params.obb_scale;
-	trans.transform_tiny(m_collision_box.m_translate, m_measures.m_collision_params.obb_pos);
-	m_collision_box.m_rotate.set(trans);
-
-	CDB::COLLIDER xrc;
-	xrc.obb_options(CDB::OPT_FULL_TEST);
-	xrc.obb_query(Level().ObjectSpace.GetStaticModel(), m_collision_box);
-
-	float nearest_obb_dist = 1000.0f;
-
-	for (CDB::RESULT& result : xrc.r_vec())
-	{
-		SGameMtl* pMtl = GMLib.GetMaterialByIdx(result.material);
-		if (pMtl && (pMtl->Flags.is(SGameMtl::flPassable) || pMtl->Flags.is(SGameMtl::flActorObstacle)))
-		{
-			continue;
-		}
-
-		m_collision_box.FindContactsClipping(result.verts, [](const Fvector& contact, void* user_data)
-		{
-			float& nearest_obb_dist = *(float*)user_data;
-			float to_cam_dist = Device.vCameraPosition.distance_to(contact);
-			if (to_cam_dist < nearest_obb_dist)
-			{
-				nearest_obb_dist = to_cam_dist;
-			}
-
-		}, &nearest_obb_dist);
-	}
-	clamp(nearest_obb_dist, 0.0f, 1.0f);
-
-	float fContactK = 1.0f - ((nearest_obb_dist - m_measures.m_collision_params.dist_min) / (m_measures.m_collision_params.dist_max - m_measures.m_collision_params.dist_min));
-
-	clamp(fContactK, 0.0f, 1.0f);
-
-	fContactK *= 1.0f - (m_parent->attached_item(0) ? m_parent->attached_item(0)->m_parent_hud_item->GetAimFactor() : 0.0f);
-
-	Fvector fTargetPos = m_measures.m_hands_positions.hands_offsets[0][EHudOffsetType::eCollision];
-	fTargetPos.mul(fContactK);
-	Fvector fTargetRot = m_measures.m_hands_positions.hands_offsets[1][EHudOffsetType::eCollision];
-	fTargetRot.mul(fContactK);
-
-	m_collision_inertia_pos.spring_inertion(fTargetPos, m_collision_inertia_pos_vel, Device.fTimeDelta,
-		m_measures.m_collision_params.stifness, m_measures.m_collision_params.damping);
-	m_collision_inertia_rot.spring_inertion(fTargetRot, m_collision_inertia_rot_vel, Device.fTimeDelta,
-		m_measures.m_collision_params.stifness, m_measures.m_collision_params.damping);
-
-	Fmatrix hud_collision;
-	hud_collision.identity();
-	hud_collision.rotateX(m_collision_inertia_rot.x);
-
-	Fmatrix hud_collision_y;
-	hud_collision_y.identity();
-	hud_collision_y.rotateY(m_collision_inertia_rot.y);
-	hud_collision.mulA_43(hud_collision_y);
-
-	Fmatrix hud_collision_z;
-	hud_collision_z.identity();
-	hud_collision_z.rotateZ(m_collision_inertia_rot.z);
-	hud_collision.mulA_43(hud_collision_z);
-
-	hud_collision.translate_over(m_collision_inertia_pos);
-	trans.mulB_43(hud_collision);
 }
 
 void attachable_hud_item::setup_firedeps(firedeps& fd)
@@ -705,15 +641,6 @@ void hud_item_measures::load(const shared_str& sect_name, IKinematics* K, bool c
 	m_hands_attach_real[1] = m_hands_positions.hands_offsets[1][EHudOffsetType::eDefault];
 
 	m_weapon_inertion.Load(sect_name, is_16x9);
-
-	m_collision_params.obb_pos = READ_IF_EXISTS(pSettings, r_fvector3, sect_name, "collision_box_pos", zero_vel);
-	m_collision_params.obb_scale = READ_IF_EXISTS(pSettings, r_fvector3, sect_name, "collision_box_scale", Fvector({1.0f, 1.0f, 1.0f}));
-
-	m_collision_params.damping = READ_IF_EXISTS(pSettings, r_float, sect_name, "collision_damping", 40.0f);
-	m_collision_params.stifness = READ_IF_EXISTS(pSettings, r_float, sect_name, "collision_stifness", 400.0f);
-
-	m_collision_params.dist_min = READ_IF_EXISTS(pSettings, r_float, sect_name, "collision_dist_min", 0.5f);
-	m_collision_params.dist_max = READ_IF_EXISTS(pSettings, r_float, sect_name, "collision_dist_max", 0.8f);
 
 	m_prop_flags.set(e_16x9_mode_now,is_16x9);
 }
@@ -1859,34 +1786,9 @@ void player_hud::update(const Fmatrix& cam_trans)
 		return;
 	}
 
-	Fmatrix trans = cam_trans;
-	update_inertion(trans);
-
-	Fmatrix trans_2 = trans;
-
-	if (m_animator_item)
-	{
-		m_animator_item->update_hud_additional(trans);
-	}
-
-	if (m_attached_items[0])
-	{
-		m_attached_items[0]->update_hud_additional(trans);
-	}
-
-	if (m_attached_items[1])
-	{
-		m_attached_items[1]->update_hud_additional(trans_2);
-
-		if (m_attached_items[0] == nullptr)
-		{
-			trans = trans_2;
-		}
-	}
-	else
-	{
-		trans_2 = trans;
-	}
+	Fmatrix	trans					= cam_trans;
+	update_inertion					(trans);
+	update_additional				(trans);
 
 	{
 		m_attach_offsetr.setHPB(VPUSH(Fvector(attach_rot()).mul(PI / 180.0f)));//generate and set Euler angles
@@ -1900,7 +1802,7 @@ void player_hud::update(const Fmatrix& cam_trans)
 		Fmatrix attach_offset;
 		attach_offset.setHPB(VPUSH(Fvector(left_hand_active ? m_attached_items[1]->hands_attach_rot() : attach_rot()).mul(PI / 180.f)));//generate and set Euler angles
 		attach_offset.c.set(left_hand_active ? m_attached_items[1]->hands_attach_pos() : attach_pos());
-		m_transformL.mul(trans_2, m_attach_offsetl.set(attach_offset));
+		m_transformL.mul(trans, m_attach_offsetl.set(attach_offset));
 	}
 
 	for (script_layer* anm : m_script_layers)
@@ -2058,6 +1960,25 @@ u32 player_hud::anim_play(u16 part, const MotionID& M, bool bMixIn, const CMotio
 	}
 
 	return				motion_length(M, md, speed, itemModel);
+}
+
+void player_hud::update_additional(Fmatrix& trans)
+{
+	if (m_animator_item != nullptr)
+	{
+		m_animator_item->update_hud_additional(trans);
+	}
+	if (m_attached_items[0] || m_attached_items[0] && m_attached_items[1])
+	{
+		m_attached_items[0]->update_hud_additional(trans);
+	}
+	else
+	{
+		if (m_attached_items[1])
+		{
+			m_attached_items[1]->update_hud_additional(trans);
+		}
+	}
 }
 
 void player_hud::update_inertion(Fmatrix& trans)

@@ -693,7 +693,7 @@ bool CUITalkWnd::OnKeyboardAction(int dik, EUIMessages keyboard_action)
 				{
 					CurrentGameUI()->PdaMenu()->HideDialog();
 				}
-				else if (m_pOthersInvOwner && !m_pOthersInvOwner->NeedOsoznanieMode())
+				else
 				{
 					StopTalk();
 				}
@@ -736,7 +736,7 @@ bool CUITalkWnd::OnGamepadKeyAction(int id, EUIMessages gamepad_action)
 					{
 						CurrentGameUI()->PdaMenu()->HideDialog();
 					}
-					else if (m_pOthersInvOwner && !m_pOthersInvOwner->NeedOsoznanieMode())
+					else
 					{
 						StopTalk();
 					}

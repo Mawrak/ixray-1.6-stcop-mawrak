@@ -26,6 +26,8 @@
 #include "PhysicsShellHolder.h"
 
 CUIProgressShape* g_MissileForceShape = nullptr;
+u8 CMissile::m_uSlotToRestore = NO_ACTIVE_SLOT;
+bool CMissile::m_bNeedRestoreDevice = false;
 
 void create_force_progress()
 {
@@ -51,26 +53,19 @@ void CMissile::reinit		()
 	SetState			( eHidden );
 }
 
-void CMissile::Load(const char* section)
+void CMissile::Load(const char* section) 
 {
-	inherited::Load(section);
+	inherited::Load		(section);
 
-	pSettings->read_if_exists<bool>(m_bUseAltThrow, section, "use_alt_throw");
-	pSettings->read_if_exists<bool>(m_bUseHudPosition, section, "use_hud_position");
+	m_fMinForce			= pSettings->r_float(section,"force_min");
+	m_fConstForce		= pSettings->r_float(section,"force_const");
+	m_fMaxForce			= pSettings->r_float(section,"force_max");
+	m_fForceGrowSpeed	= pSettings->r_float(section,"force_grow_speed");
 
-	if (!m_bUseAltThrow)
-	{
-		m_fConstForce = pSettings->r_float(section, "force_const");
-		m_fForceGrowSpeed = pSettings->r_float(section, "force_grow_speed");
-	}
-
-	m_fMinForce = pSettings->r_float(section, "force_min");
-	m_fMaxForce = pSettings->r_float(section, "force_max");
-
-	m_dwDestroyTimeMax = pSettings->r_u32(section, "destroy_time");
-
-	m_vThrowPoint = pSettings->r_fvector3(section, "throw_point");
-	m_vThrowDir = pSettings->r_fvector3(section, "throw_dir");
+	m_dwDestroyTimeMax	= pSettings->r_u32(section,"destroy_time");
+	
+	m_vThrowPoint		= pSettings->r_fvector3(section,"throw_point");
+	m_vThrowDir			= pSettings->r_fvector3(section,"throw_dir");
 
 	m_ef_weapon_type	= READ_IF_EXISTS(pSettings,r_u32,section,"ef_weapon_type",u32(-1));
 
@@ -115,14 +110,9 @@ void CMissile::LoadSounds(const char* section)
 		m_sounds.LoadSound(section, "snd_throw", "sndThrow", false, ESoundTypes(SOUND_TYPE_ITEM_HIDING));
 	}
 
-	if (pSettings->line_exist(section, "snd_throw_cancel"))
+	if (SoundExist(section, "snd_throw_quick"))
 	{
-		m_eSoundsFlags.set(ESoundsFlags::sf_throw_cancel, true);
-		m_sounds.LoadSound(section, "snd_throw_cancel", "sndThrowCancel", false, ESoundTypes(SOUND_TYPE_ITEM_HIDING));
-		if (pSettings->line_exist(section, "snd_throw_cancel_low"))
-		{
-			m_sounds.LoadSound(section, "snd_throw_cancel_low", "sndThrowCancelLow", false, ESoundTypes(SOUND_TYPE_ITEM_HIDING));
-		}
+		m_sounds.LoadSound(section, "snd_throw_quick", "sndThrowQuick", false, ESoundTypes(SOUND_TYPE_ITEM_HIDING));
 	}
 }
 
@@ -247,6 +237,8 @@ void CMissile::OnH_B_Independent(bool just_before_destroy)
 		DestroyObject		();
 		return;
 	}
+
+	m_bNeedQuick = false;
 }
 
 extern u32 hud_adj_mode;
@@ -270,17 +262,18 @@ void CMissile::UpdateCL()
 		}
 	}
 
-	if (GetState() == eReady)
+
+	if(GetState() == eReady) 
 	{
-		if (m_throw)
-		{
+		if(m_throw)
+		{ 
 			SwitchState(eThrow);
-		}
-		else if (!m_bUseAltThrow)
+		}else 
 		{
-			if (CActor* actor = H_Parent() ? H_Parent()->cast_actor() : nullptr)
-			{
-				m_fThrowForce += (m_fForceGrowSpeed * Device.dwTimeDelta) * .001f;
+			CActor	*actor = H_Parent() ? H_Parent()->cast_actor() : NULL;
+			if (actor) 
+			{				
+				m_fThrowForce		+= (m_fForceGrowSpeed * Device.dwTimeDelta) * .001f;
 				clamp(m_fThrowForce, m_fMinForce, m_fMaxForce);
 			}
 		}
@@ -307,6 +300,18 @@ void CMissile::UpdateCL()
 		m_sounds.SetPosition("sndThrowBegin", P);
 }
 
+void CMissile::SetQuickThrow()
+{
+	m_bNeedQuick = true;
+	
+	m_uSlotToRestore = m_pInventory != nullptr ? m_pInventory->GetActiveSlot() : NO_ACTIVE_SLOT;
+
+	if (CActor* pActor = H_Parent() != nullptr ? H_Parent()->cast_actor() : nullptr)
+	{
+		m_bNeedRestoreDevice = pActor->GetDevice() != nullptr;
+	}
+}
+
 void CMissile::shedule_Update(u32 dt)
 {
 	inherited::shedule_Update(dt);
@@ -321,79 +326,79 @@ void CMissile::shedule_Update(u32 dt)
 		}
 	}
 }
-
-void CMissile::State(u8 state)
+#include "player_hud.h"
+void CMissile::State(u8 state) 
 {
-	switch (GetState())
+	switch(GetState()) 
 	{
 		case eShowing:
 		{
 			SetPending(true);
 
-			PlayHUDMotion("anm_show", EHudMixType::eNoMix, GetState(), m_disable_random_animations);
+			if (m_bNeedQuick)
+			{
+				m_constpower = true;
+				m_throw = false;
 
-			if (m_eSoundsFlags.test(ESoundsFlags::sf_draw))
+				if (H_Parent() != nullptr && m_fake_missile == nullptr && H_Parent()->cast_missile() == nullptr)
+				{
+					spawn_fake_missile();
+				}
+			}
+
+			PlayHUDMotion(m_bNeedQuick ? "anm_throw_quick" : "anm_show", EHudMixType::eNoMix, GetState(), m_disable_random_animations);
+
+			if (m_bNeedQuick)
+			{
+				PlaySound("sndThrowQuick", Position());
+			}
+			else if (m_eSoundsFlags.test(ESoundsFlags::sf_draw))
 			{
 				PlaySound("SndShow", Position());
 			}
-		}
-		break;
-		case eIdle:
+		} break;
+	case eIdle:
 		{
-			SetPending(false);
-			PlayAnimIdle();
-		}
-		break;
-		case eHiding:
+			SetPending			(false);
+			PlayAnimIdle		();
+		} break;
+	case eHiding:
 		{
-			if (H_Parent())
+			if(H_Parent())
 			{
-				PlayHUDMotion("anm_hide", EHudMixType::eMixAll, GetState(), m_disable_random_animations);
-				SetPending(true);
+				PlayHUDMotion		("anm_hide", EHudMixType::eMixAll, GetState(), m_disable_random_animations);
+				SetPending			(true);
 				if (m_eSoundsFlags.test(ESoundsFlags::sf_holster))
 				{
 					PlaySound("SndHide", Position());
 				}
 			}
-		}
-		break;
-		case eHidden:
+		} break;
+	case eHidden:
 		{
-			StopCurrentAnimWithoutCallback();
-
-			if (H_Parent())
+			
+			m_bNeedQuick = false;
+			if (1 /*GetHUD()*/) 
 			{
-				setVisible(false);
-				setEnabled(false);
+				StopCurrentAnimWithoutCallback	();
 			};
-
-			SetPending(false);
-		}
-		break;
-		case eThrowCancel:
+			
+			if (H_Parent())
+			{				
+				setVisible(false);
+				setEnabled(false);				
+			};
+			SetPending			(false);
+		} break;
+	case eThrowStart:
 		{
-			SetPending(true);
-			PlayHUDMotion((!m_bUseAltThrow || m_constpower) ? "anm_throw_cancel" : "anm_throw_cancel_low", EHudMixType::eMixAll, GetState());
-
-			if (m_eSoundsFlags.test(ESoundsFlags::sf_throw_cancel))
-			{
-				PlaySound((!m_bUseAltThrow || m_constpower) ? "sndThrowCancel" : "sndThrowCancelLow", Position());
-			}
-
-			m_constpower = false;
-
-			break;
-		}
-		case eThrowStart:
-		{
-			SetPending(true);
-			m_fThrowForce = m_fMinForce;
+			SetPending			(true);
+			m_fThrowForce		= m_fMinForce;
 			if (m_eSoundsFlags.test(ESoundsFlags::sf_throw_begin))
 			{
 				PlaySound("sndThrowBegin", Position());
 			}
-
-			PlayHUDMotion((!m_bUseAltThrow || m_constpower) ? "anm_throw_begin" : "anm_throw_begin_low", EHudMixType::eMixAll, GetState(), m_disable_random_animations);
+			PlayHUDMotion		("anm_throw_begin", EHudMixType::eMixAll, GetState(), m_disable_random_animations);
 
 			if (CActor* actor = H_Parent() != nullptr ? H_Parent()->cast_actor() : nullptr)
 			{
@@ -405,11 +410,10 @@ void CMissile::State(u8 state)
 					}
 				}
 			}
-		}
-		break;
-		case eReady:
+		} break;
+	case eReady:
 		{
-			PlayHUDMotion((!m_bUseAltThrow || m_constpower) ? "anm_throw_idle" : "anm_throw_idle_low", EHudMixType::eMixAll, GetState(), m_disable_random_animations);
+			PlayHUDMotion		("anm_throw_idle", EHudMixType::eMixAll, GetState(), m_disable_random_animations);
 			if (CActor* actor = H_Parent() != nullptr ? H_Parent()->cast_actor() : nullptr)
 			{
 				if (CCustomDevice* dev = actor->GetDevice())
@@ -420,17 +424,16 @@ void CMissile::State(u8 state)
 					}
 				}
 			}
-		}
-		break;
-		case eThrow:
+		} break;
+	case eThrow:
 		{
-			SetPending(true);
-			m_throw = false;
+			SetPending			(true);
+			m_throw				= false;
 			if (m_eSoundsFlags.test(ESoundsFlags::sf_throw))
 			{
 				PlaySound("sndThrow", Position());
 			}
-			PlayHUDMotion((!m_bUseAltThrow || m_constpower) ? "anm_throw" : "anm_throw_low", "anm_throw_act", EHudMixType::eMixAll, GetState(), m_disable_random_animations);
+			PlayHUDMotion("anm_throw", "anm_throw_act", EHudMixType::eMixAll, GetState(), m_disable_random_animations);
 			m_motion_marks_available = m_current_motion_def ? !m_current_motion_def->marks.empty() : false;
 
 			if (CActor* actor = H_Parent() != nullptr ? H_Parent()->cast_actor() : nullptr)
@@ -443,17 +446,22 @@ void CMissile::State(u8 state)
 					}
 				}
 			}
-		}
-		break;
-		case eThrowEnd:
+
+		} break;
+	case eThrowEnd:
 		{
 			if (!m_motion_marks_available)
 			{
 				PlayHUDMotion("anm_throw_end", EHudMixType::eMixAll, GetState(), m_disable_random_animations);
 			}
-			SwitchState(eShowing);
-		}
-		break;
+			SwitchState			(eShowing); 
+		} break;
+/*	case eBore:
+		{
+			PlaySound			(sndPlaying,Position());
+			PlayHUDMotion		("anm_bore", true, GetState());
+		} break;
+*/
 	}
 }
 
@@ -464,67 +472,86 @@ void CMissile::OnStateSwitch	(u8 S)
 	State						(S);
 }
 
-void CMissile::OnAnimationEnd(u8 state)
+
+void CMissile::OnAnimationEnd(u8 state) 
 {
-	switch (state)
+	switch(state) 
 	{
-		case eHiding:
+	case eHiding:
 		{
 			setVisible(false);
 			SwitchState(eHidden);
-		}
-		break;
-		case eShowing:
+		} break;
+	case eShowing:
 		{
-			setVisible(true);
-			SwitchState(eIdle);
-		}
-		break;
-		case eThrowStart:
-		{
-			if (H_Parent() && !m_fake_missile && !H_Parent()->cast_missile())
+			if (m_bNeedQuick)
 			{
-				spawn_fake_missile();
-			}
+				SwitchState(eHidden);
+				m_bNeedQuick = false;
 
-			if (m_throw)
-			{
-				SwitchState(eThrow);
+				u16 saved_old_slot = NO_ACTIVE_SLOT;
+
+				if (m_pInventory != nullptr && m_pInventory->ItemFromSlot(m_uSlotToRestore) != nullptr)
+				{
+					saved_old_slot = m_pInventory->ItemFromSlot(m_uSlotToRestore)->BaseSlot();
+					m_pInventory->SetActiveSlot(m_uSlotToRestore);
+					m_uSlotToRestore = NO_ACTIVE_SLOT;
+				}
+
+				bool bres = (saved_old_slot == NO_ACTIVE_SLOT || IsSidearmPhysicalSlot(saved_old_slot) || saved_old_slot == KNIFE_SLOT || saved_old_slot == BOLT_SLOT);
+
+				if (!bres)
+				{
+					m_bNeedRestoreDevice = false;
+				}
+
+				if (m_bNeedRestoreDevice)
+				{
+					if (CActor* pActor = H_Parent() != nullptr ? H_Parent()->cast_actor() : nullptr)
+					{
+						if (CCustomDevice* pDevice = pActor->GetDevice(true))
+						{
+							pDevice->switch_device();
+						}
+					}
+
+					m_bNeedRestoreDevice = false;
+				}
 			}
 			else
 			{
-				SwitchState(eReady);
+				setVisible(true);
+				SwitchState(eIdle);
 			}
-		}
-		break;
-		case eThrow:
+		} break;
+	case eThrowStart:
 		{
-			SwitchState(eThrowEnd);
+			if(H_Parent() && !m_fake_missile && !H_Parent()->cast_missile())
+				spawn_fake_missile	();
+
+			if(m_throw) 
+				SwitchState(eThrow); 
+			else 
+				SwitchState(eReady);
+		} break;
+	case eThrow:
+		{
+			SwitchState	(eThrowEnd);
 			if (!m_motion_marks_available && !m_throw)
 			{
 				if (H_Parent())
-				{
 					Throw();
-				}
 			}
-		}
-		break;
-		case eThrowEnd:
+		} break;
+	case eThrowEnd:
 		{
-			SwitchState(eShowing);
-		}
-		break;
-		case eThrowCancel:
-		{
-			SwitchState(eIdle);
-			break;
-		}
-		default:
-		{
-			inherited::OnAnimationEnd(state);
-		}
+			SwitchState	(eShowing);
+		} break;
+	default:
+		inherited::OnAnimationEnd(state);
 	}
 }
+
 
 void CMissile::UpdatePosition(const Fmatrix& trans)
 {
@@ -582,7 +609,7 @@ void CMissile::UpdateXForm	()
 	}
 }
 
-void CMissile::setup_throw_params(bool bForce = false)
+void CMissile::setup_throw_params()
 {
 	if (!H_Parent()) return;
 	CGameObject* GO = H_Parent()->cast_game_object();
@@ -594,7 +621,7 @@ void CMissile::setup_throw_params(bool bForce = false)
 	Fmatrix					trans;
 	trans.identity			();
 	Fvector					FirePos, FireDir;
-	if (this == inventory_owner->inventory().ActiveItem() || bForce)
+	if (this == inventory_owner->inventory().ActiveItem())
 	{
 		entity->g_fireParams(this, FirePos, FireDir);
 	}
@@ -613,7 +640,7 @@ void CMissile::setup_throw_params(bool bForce = false)
 void CMissile::OnMotionMark(u8 state, const motion_marks& M)
 {
 	inherited::OnMotionMark(state, M);
-	if (state == eThrow && !m_throw)
+	if ((state == eThrow || state == eShowing && m_bNeedQuick) && !m_throw)
 	{
 		if (H_Parent())
 		{
@@ -632,32 +659,7 @@ void CMissile::Throw()
 	if (pActor && pActor == Level().CurrentControlEntity() || Local())
 	{
 		VERIFY(H_Parent()->cast_entity());
-		setup_throw_params(IsHidden() && GetHUDmode());
-
-		if (m_bUseHudPosition && GetHUDmode() && !IsHidden())
-		{
-			attachable_hud_item* HID = HudItemData();
-			auto Animator = g_player_hud->GetAnimator();
-
-			if (HID || Animator)
-			{
-				m_throw_matrix.set(HID ? HID->m_item_transform : Animator && Animator->m_item ? Animator->m_item_transform : Fidentity);
-
-				Fvector cam_pos = Device.vCameraPosition;
-				Fvector throw_pos = m_throw_matrix.c;
-				Fvector dir = Fvector().set(throw_pos).sub(cam_pos);
-				float dist = dir.magnitude();
-				if (dist > EPS)
-				{
-					dir.normalize();
-					collide::rq_result RQ;
-					if (g_pGameLevel->ObjectSpace.RayPick(cam_pos, dir, dist, collide::rqtBoth, RQ, H_Parent()))
-					{
-						m_throw_matrix.c.sub(dir.mul(dist - RQ.range + 0.01f));
-					}
-				}
-			}
-		}
+		setup_throw_params();
 
 		m_fake_missile->m_throw_direction = m_throw_direction;
 		m_fake_missile->m_throw_matrix = m_throw_matrix;
@@ -666,14 +668,7 @@ void CMissile::Throw()
 		VERIFY(inventory_owner);
 		if (inventory_owner->use_default_throw_force())
 		{
-			if (m_bUseAltThrow)
-			{
-				m_fake_missile->m_fThrowForce = m_constpower ? m_fMaxForce : m_fMinForce;
-			}
-			else
-			{
-				m_fake_missile->m_fThrowForce = m_constpower ? m_fConstForce : m_fThrowForce;
-			}
+			m_fake_missile->m_fThrowForce = m_constpower ? m_fConstForce : m_fThrowForce;
 		}
 		else
 		{
@@ -731,87 +726,56 @@ void CMissile::Destroy()
 	if (Local())		DestroyObject();
 }
 
-bool CMissile::Action(u16 cmd, u32 flags)
+bool CMissile::Action(u16 cmd, u32 flags) 
 {
-	if (inherited::Action(cmd, flags))
-	{
-		return true;
-	}
+	if(inherited::Action(cmd, flags)) return true;
 
-	switch (cmd)
+	switch(cmd) 
 	{
-		case kWPN_FIRE:
-		case kWPN_ZOOM:
+	case kWPN_FIRE:
 		{
-			return ThrowAction(cmd, flags);
-			break;
-		}
-		case kWPN_RELOAD:
-		{
-			if (HudAnimationExist("anm_throw_cancel") && GetNextState() == eReady && !m_throw)
+			m_constpower = true;			
+			if(flags&CMD_START) 
 			{
-				SwitchState(eThrowCancel);
-			}
-			break;
-		}
-	}
+				if (!m_bNeedQuick && (GetState() == eIdle || GetState() == eBore))
+				{
+					m_throw = true;
+					SwitchState(eThrowStart);
+				}
+			} 
+			return true;
+		}break;
 
-	return false;
-}
-
-bool CMissile::ThrowAction(u16 cmd, u32 flags)
-{
-	const u8 NextState = GetNextState();
-
-	if (NextState == eHiding)
-	{
-		return false;
-	}
-
-	const bool IsConst = (cmd & kWPN_FIRE) != 0;
-
-	if (flags & CMD_START)
-	{
-		if (IsConst && !m_bUseAltThrow)
+	case kWPN_ZOOM:
 		{
-			if (!IsPending() || NextState == eIdle)
+			if (m_bNeedQuick)
 			{
-				m_constpower = true;
-				m_throw = true;
-				SwitchState(eThrowStart);
-				return true;
+				return false;
 			}
-		}
-		else
-		{
-			if (!m_bUseAltThrow || IsConst == m_constpower)
+
+			m_constpower = false;
+        	if(flags&CMD_START) 
 			{
 				m_throw = false;
-			}
+				if (GetState() == eIdle || GetState() == eBore)
+					SwitchState(eThrowStart);
+				else 
+				if(GetState()==eReady)
+				{
+					m_throw = true; 
+				}
 
-			if (!IsPending() || NextState == eIdle)
+			} 
+			else 
+			if(GetState()==eReady || GetState()==eThrowStart || GetState()==eIdle) 
 			{
-				m_constpower = IsConst;
-				SwitchState(eThrowStart);
-				return true;
+				m_throw = true; 
+				if(GetState()==eReady) 
+					SwitchState(eThrow);
 			}
-		}
-	}
-	else if ((!IsConst || m_bUseAltThrow) && (NextState == eReady || NextState == eThrowStart))
-	{
-		if (m_bUseAltThrow && m_constpower != IsConst)
-		{
-			return false;
-		}
-
-		m_throw = true;
-		if (NextState == eReady)
-		{
-			SwitchState(eThrow);
 			return true;
-		}
+		}break;
 	}
-
 	return false;
 }
 
@@ -957,24 +921,18 @@ bool CMissile::render_item_ui_query()
 {
 	bool b_is_active_item = m_pInventory && m_pInventory->ActiveItem() && m_pInventory->ActiveItem() == this;
 	bool parent_actor = H_Parent() ? H_Parent()->cast_actor() : nullptr;
-	return b_is_active_item && !m_bUseAltThrow && (GetState() == eReady) && !m_throw && parent_actor;
+	return b_is_active_item && (GetState() == eReady) && !m_throw && parent_actor;
 }
 
 void CMissile::render_item_ui()
 {
-	if (!H_Parent() || !H_Parent()->cast_actor())
-	{
-		return;
-	}
+	if (!H_Parent() || !H_Parent()->cast_actor()) return;
 
-	if (!g_MissileForceShape)
-	{
+	if(!g_MissileForceShape) 
 		create_force_progress();
-	}
-
-	float k = (m_fThrowForce - m_fMinForce) / (m_fMaxForce - m_fMinForce);
-	g_MissileForceShape->SetPos(k);
-	g_MissileForceShape->Draw();
+	float k = (m_fThrowForce-m_fMinForce)/(m_fMaxForce-m_fMinForce);
+	g_MissileForceShape->SetPos	(k);
+	g_MissileForceShape->Draw	();
 }
 
 void CMissile::ExitContactCallback(bool& do_colide,bool bo1,dContact& c,SGameMtl * /*material_1*/,SGameMtl * /*material_2*/)

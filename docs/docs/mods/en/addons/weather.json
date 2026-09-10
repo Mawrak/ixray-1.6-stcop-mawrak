@@ -1,6 +1,7 @@
 {
   "eyebrow": "Addon · Weather",
   "title": "Weather Add-ons",
+  "subtitle": "Example addon data. Replace with real weather packs.",
   "labels": {
     "view": "Download / Open",
     "soon": "Soon"

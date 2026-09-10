@@ -2,6 +2,7 @@
 
 #include "../xrPhysics/PhysicsShell.h"
 #include "WeaponAmmo.h"
+#include "PHShellCreator.h"
 
 #include "ShootingObject.h"
 #include "hud_item_object.h"
@@ -30,6 +31,7 @@ class CWeaponBM16;
 class CWeaponRPG7;
 class CWeaponRG6;
 class CWeaponPistol;
+class CWeaponCustomPistol;
 class CParticlesObject;
 class CUIStatic;
 struct TAmmoBones;
@@ -89,6 +91,8 @@ public:
 	virtual void			OnEvent				(NET_Packet& P, u16 type);// {inherited::OnEvent(P,type);}
 
 	virtual void			OnMoveToRuck		(const SInvItemPlace& prev) override;
+
+	virtual	void			Hit					(SHit* pHDS);
 
 	virtual void			reinit				();
 	virtual void			reload				(const char* section);
@@ -415,9 +419,6 @@ protected:
 	bool m_bAllowSafemode = false;
 	bool m_bAimActions = false;
 	bool NeedMisfireAmmo = false;
-	bool DisableLastAmmoMisfire = false;
-	bool DisableEmptyFiremode = false;
-	bool DisableGrenadeChange = false;
 
 	bool m_bHaveShell = false;
 	bool m_bNeedPumpState = false;
@@ -441,9 +442,9 @@ protected:
 	shared_str hud_silencer;
 	shared_str hud_scope;
 	shared_str hud_gl;
-	RStringVec m_safemode_cams[2] = {};
 
-	RStringVec m_aim_cams[2] = {};
+	shared_str m_safemode_cams[2] = {};
+	shared_str m_aim_cams[2] = {};
 
 	RStringVec m_shot_cams[2] = {};
 
@@ -516,7 +517,7 @@ protected:
 	RStringVec m_bDefHideBones {}, m_bDefShowBones {}, m_bHideBonesOverride {}, m_bDefHideBonesGLAttached {},
 		m_bHideBonesGLAttached {}, m_bHideBonesSilAttached {}, m_bHideBonesScopeAttached {},
 		m_bHideBonesUpgrade {}, m_bScopeShowBones{}, m_bScopeHideBones{}, m_bShowBonesUpgToHide{}, m_bShowBonesUpgToShow{},
-		m_sCollimatorSightsBones{}, m_bDefHideBonesSilencerAttached{}, m_bDefHideBonesScopeAttached{};
+		m_sCollimatorSightsBones{};
 
 	bool m_bDisableFireModeAim = false;
 	bool m_bIsReloaded = false;
@@ -537,7 +538,6 @@ public:
 	virtual void			OnZoomIn			();
 	virtual void			OnZoomOut			();
 	void					OnSafemodeOut		();
-	void					StartCamEffector	(const RStringVec& cams, bool hud_affect = true, int type_min = 32000, int type_max = 32999);
 	IC virtual bool IsZoomed() const final override { return m_zoom_params.m_bIsZoomModeNow; }
 	IC		bool			IsAltZoomed			()	const		{return m_zoom_params.m_bIsAltZoomModeNow;}
 	CUIStatic*				ZoomTexture			();	
@@ -843,6 +843,10 @@ protected:
 	u32						m_ef_main_weapon_type = u32(-1);
 	u32						m_ef_weapon_type = u32(-1);
 
+protected:
+	float					m_bullet_point_offset_hud;
+	float					m_bullet_point_offset_world;
+
 public:
 	virtual u32				ef_main_weapon_type	() const;
 	virtual u32				ef_weapon_type		() const;
@@ -905,7 +909,7 @@ public:
 	bool bUseAltScope{};
 	bool bScopeIsHasTexture{};
 
-	virtual float GetAimFactor() const final override { return m_zoom_params.m_fZoomRotationFactor; }
+	float GetAimFactor() const { return m_zoom_params.m_fZoomRotationFactor; }
 	float GetAltAimFactor() const { return m_zoom_params.m_fZoomRotationFactor2; }
 	bool GetScopeBack();
 	void UpdateCollimatorSight();

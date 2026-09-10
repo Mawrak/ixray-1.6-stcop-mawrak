@@ -363,7 +363,7 @@ function play_snd(actor, npc, p)
 	if p[1] then
 		local snd_obj = xr_sound.get_safe_sound_object(p[1])
 		--snd_obj:play(actor, p[2] or 0, sound_object.s2d)
-		snd_obj:play_no_feedback(actor, sound_object.s2d, p[2] or 0, vector():set(0,0,0), 1.0)
+		snd_obj:play_no_feedback(actor, sound_object.s2d, p[2] or 0, vector(), 1.0)
 	end
 end
 
@@ -452,7 +452,7 @@ function actor_punch(npc)
 	
 	set_inactivate_input_time(30)
 	local snd_obj = xr_sound.get_safe_sound_object([[affects\hit_fist]])
-	snd_obj:play_no_feedback(db.actor, sound_object.s2d, 0, vector():set(0,0,0), 1.0)
+	snd_obj:play_no_feedback(db.actor, sound_object.s2d, 0, vector(), 1.0)
 
 	level.add_cam_effector("camera_effects\\fusker.anm", 999, false, "")		
 end
@@ -533,7 +533,7 @@ function gar_dm_bandits_fight(actor, npc)
 		if not ignore_actor then
 			bandit3:set_relation(game_object.enemy, actor)
 		end
-		bandit3:set_relation(game_object.enemy, novice)
+		bandit1:set_relation(game_object.enemy, novice)
 	end
 end
 
@@ -706,10 +706,31 @@ end
 function military_dolg_dead (actor, npc)
     -- если нет актера, то вылетаем с грохотом и треском
     if actor == nil then return end
+    -- если данные не существуют, то создадим
+    local id = actor:id ()
+    if db.storage[id] == nil then
+       db.storage[id] = {}
+    end    
+    
+    if db.storage[id].mil_dolg_killed == nil then
+       db.storage[id].mil_dolg_killed = 0
+       db.storage[id].mil_dolg_killed_by_actor = false
+    end    
     -- проапдейтим количество мертвых долговцев
-    local mil_dolg_killed = xr_logic.pstor_retrieve(actor, "mil_dolg_killed", 0) + 1
-    xr_logic.pstor_store(actor, "mil_dolg_killed", mil_dolg_killed)
-    if mil_dolg_killed == 8 then
+    db.storage[id].mil_dolg_killed = db.storage[id].mil_dolg_killed + 1
+
+    --printf ("!!! DOLG STALKER IS DEAD, KILLED %d STALKERS !!!", db.storage[db.actor:id ()].mil_dolg["killed"])
+
+    -- взведем флажок, что мужика замочили мы (нужно для Свободы) 
+    local st = db.storage[npc:id ()]
+    if st.death.killer == -1 then return end
+    if id == st.death.killer then 
+       db.storage[id].mil_dolg_killed_by_actor = true
+    end
+    
+    -- если все умерли и была задача мочить снайпера, но сообщать не кому, то
+    -- ставим задачу, как не выполненую
+    if db.storage[id].mil_dolg_killed == 8 then
        actor:give_info_portion ("mil_dolg_dead")
     end   
     
@@ -869,8 +890,8 @@ function bar_territory_logic(actor, npc)
 				xr_gulag.setGulagEnemy("bar_dolg_general", db.actor)
 				xr_gulag.setGulagEnemy("bar_dolg_veterans", db.actor)
 				xr_gulag.setGulagEnemy("bar_dolg_bunker", db.actor)
-				xr_gulag.setGulagEnemy("bar_zastava", db.actor)
-				xr_gulag.setGulagEnemy("bar_zastava_2", db.actor)
+				xr_gulag.setGulagEnemy("bar_dolg_zastava", db.actor)
+				xr_gulag.setGulagEnemy("bar_dolg_zastava_2", db.actor)
 				xr_gulag.setGulagEnemy("bar_visitors", db.actor)
 				return
 			end
@@ -879,8 +900,8 @@ function bar_territory_logic(actor, npc)
 				xr_gulag.setGulagEnemy("bar_dolg_general", db.actor)
 				xr_gulag.setGulagEnemy("bar_dolg_veterans", db.actor)
 				xr_gulag.setGulagEnemy("bar_dolg_bunker", db.actor)
-				xr_gulag.setGulagEnemy("bar_zastava", db.actor)
-				xr_gulag.setGulagEnemy("bar_zastava_2", db.actor)
+				xr_gulag.setGulagEnemy("bar_dolg_zastava", db.actor)
+				xr_gulag.setGulagEnemy("bar_dolg_zastava_2", db.actor)
 				return
 			end
 			if has_alife_info("bar_dolg_territory_2_hit") then
@@ -898,8 +919,8 @@ function bar_territory_logic(actor, npc)
 				xr_gulag.setGulagEnemy("bar_dolg_general", db.actor)
 				xr_gulag.setGulagEnemy("bar_dolg_veterans", db.actor)
 				xr_gulag.setGulagEnemy("bar_dolg_bunker", db.actor)
-				xr_gulag.setGulagEnemy("bar_zastava", db.actor)
-				xr_gulag.setGulagEnemy("bar_zastava_2", db.actor)
+				xr_gulag.setGulagEnemy("bar_dolg_zastava", db.actor)
+				xr_gulag.setGulagEnemy("bar_dolg_zastava_2", db.actor)
 				xr_gulag.setGulagEnemy("bar_visitors", db.actor)
 				return
 			end
@@ -909,8 +930,8 @@ function bar_territory_logic(actor, npc)
 				xr_gulag.setGulagEnemy("bar_dolg_general", db.actor)
 				xr_gulag.setGulagEnemy("bar_dolg_veterans", db.actor)
 				xr_gulag.setGulagEnemy("bar_dolg_bunker", db.actor)
-				xr_gulag.setGulagEnemy("bar_zastava", db.actor)
-				xr_gulag.setGulagEnemy("bar_zastava_2", db.actor)
+				xr_gulag.setGulagEnemy("bar_dolg_zastava", db.actor)
+				xr_gulag.setGulagEnemy("bar_dolg_zastava_2", db.actor)
 				xr_gulag.setGulagEnemy("bar_visitors", db.actor)
 				return
 			end
@@ -1384,7 +1405,7 @@ end
 
 function agr_knockdown ()
 	local snd_obj = xr_sound.get_safe_sound_object([[affects\tinnitus3a]])
-	snd_obj:play_no_feedback(db.actor, sound_object.s2d, 0, vector():set(0,0,0), 1.0)
+	snd_obj:play_no_feedback(db.actor, sound_object.s2d, 0, vector(), 1.0)
 	level.add_cam_effector("camera_effects\\earthquake.anm", 1974, false, "")
 end
 
@@ -1808,7 +1829,7 @@ end
 -- постпроцесс и влияние удара в морду
 function aes_earthshake (npc)
 	local snd_obj = xr_sound.get_safe_sound_object([[ambient\earthquake]])
-	snd_obj:play_no_feedback(db.actor, sound_object.s2d, 0, vector():set(0,0,0), 1.0)
+	snd_obj:play_no_feedback(db.actor, sound_object.s2d, 0, vector(), 1.0)
 	level.add_cam_effector("camera_effects\\earthquake.anm", 1974, false, "")
     --set_postprocess ("scripts\\earthshake.ltx")
 end
@@ -1854,7 +1875,7 @@ function x18_gluk (actor, npc)
 		local sound_obj_l		= xr_sound.get_safe_sound_object( [[affects\psy_blackout_l]] )
         local sound_obj_r		= xr_sound.get_safe_sound_object( [[affects\psy_blackout_r]] )
         local snd_obj			= xr_sound.get_safe_sound_object( [[affects\tinnitus3a]] )
-		snd_obj:play_no_feedback(db.actor, sound_object.s2d, 0, vector():set(0,0,0), 1.0)
+		snd_obj:play_no_feedback(db.actor, sound_object.s2d, 0, vector(), 1.0)
 		sound_obj_l:play_no_feedback(actor, sound_object.s2d, 0, vector():set(-1, 0, 1), 1.0)
 		sound_obj_r:play_no_feedback(actor, sound_object.s2d, 0, vector():set( 1, 0, 1), 1.0)
 	level.add_cam_effector("camera_effects\\earthquake.anm", 1974, false, "")
@@ -1896,7 +1917,7 @@ function yan_ghost_pda (actor, npc)
     if has_alife_info("agr_gunslinger_flash_have") then 
         db.actor:give_info_portion("yan_provodnik_spawn")
     end
-    news_manager.send_tip(db.actor, "storyline_ghost_tip", nil, "prizrak")
+    news_manager.send_tip(db.actor, "storyline_ghost_tip", nil, "wolf")
 end
 
 function start_yantar_dream(actor, npc)
@@ -2084,34 +2105,4 @@ function on_tutor_gameover_stop()
 --	c:execute("disconnect")
 	printf("main_menu on console command is executed")
 	c:execute("main_menu on")
-end
-
-function on_tutor_gameover_quickload()
-	local c = get_console()
-	c:execute("load_last_save")
-end
-
-function set_game_time(actor, npc, p)
-	local real_hours = level.get_time_hours()
-	local real_minutes = level.get_time_minutes()
-	local hours = tonumber(p[1])
-	local minutes = tonumber(p[2])
-	if p[2] == nil then
-		minutes = 0
-	end
-	local hours_to_change = hours - real_hours
-	if hours_to_change <= 0 then
-		hours_to_change = hours_to_change + 24
-	end
-	local minutes_to_change = minutes - real_minutes
-	if minutes_to_change <= 0 then
-		minutes_to_change = minutes_to_change + 60
-		hours_to_change = hours_to_change - 1
-	elseif hours == real_hours then
-		hours_to_change = hours_to_change - 24
-	end
-	level.change_game_time(0,hours_to_change,minutes_to_change)
-	level_weathers.get_weather_manager():reset()
-	--surge_manager.get_surge_manager().time_forwarded = true
-	printf("set_game_time: time changed to [%d][%d]", hours_to_change, minutes_to_change)
 end

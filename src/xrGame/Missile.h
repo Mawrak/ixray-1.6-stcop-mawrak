@@ -14,8 +14,7 @@ class CMissile : public CHudItemObject
 public:
 	enum EMissileStates : u8
 	{
-		eThrowCancel = eLastBaseState+1,
-		eThrowStart,
+		eThrowStart = eLastBaseState+1,
 		eReady,
 		eThrow,
 		eThrowEnd,
@@ -59,13 +58,12 @@ public:
 	virtual void 			OnStateSwitch				(u8 S);
 	virtual bool			GetBriefInfo				(II_BriefInfo& info);
 	bool					NeedBlockSprint				() const;
-	void spawn_fake_missile();
 
 protected:
 	virtual void			UpdateFireDependencies_internal	();
 	virtual void			UpdateXForm						();
 	void					UpdatePosition					(const Fmatrix& trans);
-	bool ThrowAction(u16 cmd, u32 flags);
+	void					spawn_fake_missile				();
 
 	virtual void			OnActiveItem		();
 	virtual void			OnHiddenItem		();
@@ -92,8 +90,10 @@ protected:
 
 	xr_vector<shared_str>	m_sCheckoutBones;
 
-	bool					m_bUseAltThrow = false;
-	bool					m_bUseHudPosition = false;
+	bool					m_bNeedQuick = false;
+
+	static u8				m_uSlotToRestore;
+	static bool				m_bNeedRestoreDevice;
 
 	//параметры броска
 	
@@ -107,7 +107,7 @@ protected:
 	Fvector					m_vThrowDir;
 
 protected:
-			void			setup_throw_params		(bool bForce);
+			void			setup_throw_params		();
 public:
 	Fvector const&			throw_point_offset		() const {return m_vThrowPoint;}
 	virtual void			activate_physic_shell	();
@@ -115,6 +115,7 @@ public:
 	virtual void			create_physic_shell		();
 	IC		void			set_destroy_time		(u32 delta_destroy_time) {m_dwDestroyTime = delta_destroy_time + Device.dwTimeGlobal;}
 	virtual void			PH_A_CrPr				();
+	virtual void			SetQuickThrow			();
 
 protected:
 	u32						m_ef_weapon_type;

@@ -50,7 +50,7 @@
 #include "Grenade.h"
 #include "InteractiveObject.h"
 #include "nvg.h"
-#include "Bolt.h"
+#include "PickupManager.h"
 
 extern u32 hud_adj_mode;
 
@@ -206,47 +206,23 @@ void CActor::IR_OnKeyboardPress(int dik)
 	}break;
 	case kQUICK_GRENADE:
 	{
-		PIItem grenade_item = inventory().ItemFromSlot(GRENADE_SLOT);
-		if (m_sQuickGrenadeAnimator.size() > 0 && grenade_item != nullptr)
+		PIItem item_from_slot = inventory().EnsureSlotItemFromRuck(GRENADE_SLOT);
+		CGrenade* grenade_item = item_from_slot != nullptr ? item_from_slot->cast_grenade() : nullptr;
+
+		if (grenade_item != nullptr && !inventory().IsSlotBlocked(grenade_item) && grenade_item->HudAnimationExist("anm_throw_quick"))
 		{
-			if (!HudAnimator()->IsAnyAnimatorActive())
+			if (item_from_slot != inventory().ActiveItem())
 			{
-				if (grenade_item != inventory().ActiveItem())
-				{
-					grenade_item->cast_grenade()->spawn_fake_missile();
-					StartAnimator(m_sQuickGrenadeAnimator);
-					HudAnimator()->ItemAnimator()->SetLeftCallback({this, &CActor::MakeThrowGrenade});
-				}
-				else
-				{
-					grenade_item->Action(kWPN_FIRE, CMD_START);
-					grenade_item->Action(kWPN_FIRE, CMD_STOP);
-				}
+				grenade_item->SetQuickThrow();
+				inventory().Activate(GRENADE_SLOT);
+			}
+			else
+			{
+				grenade_item->Action(kWPN_FIRE, CMD_START);
+				grenade_item->Action(kWPN_FIRE, CMD_STOP);
 			}
 		}
 	}break;
-	case kQUICK_BOLT:
-	{
-		PIItem bolt_item = inventory().ItemFromSlot(BOLT_SLOT);
-		if (m_sQuickBoltAnimator.size() > 0 && bolt_item != nullptr)
-		{
-			if (!HudAnimator()->IsAnyAnimatorActive())
-			{
-				if (bolt_item != inventory().ActiveItem())
-				{
-					StartAnimator(m_sQuickBoltAnimator);
-					HudAnimator()->ItemAnimator()->SetLeftCallback({this, &CActor::MakeThrowBolt});
-					bolt_item->cast_bolt()->spawn_fake_missile();
-				}
-				else
-				{
-					bolt_item->Action(kWPN_FIRE, CMD_START);
-					bolt_item->Action(kWPN_FIRE, CMD_STOP);
-				}
-			}
-		}
-	}
-	break;
 	case kUSE:
 		ActorUse();
 		UpdatePickupMode();
@@ -1087,50 +1063,6 @@ void CActor::IR_GamepadKeyPress(int id)
 	EGameActions bindAim = get_binded_action(id, agAiming);
 	switch (bindAim)
 	{
-		case kL_LOOKOUT:
-		{
-			if (IsZoomAimingMode())
-			{
-				if (eacLookAt != cam_active)
-				{
-					if (!(mstate_wishful & mcLLookout))
-					{
-						mstate_wishful |= mcLLookout;
-					}
-					else
-					{
-						mstate_wishful &= mcLLookout;
-					}
-				}
-				else
-				{
-					psActorFlags.set(AF_RIGHT_SHOULDER, true);
-				}
-			}
-			break;
-		}
-		case kR_LOOKOUT:
-		{
-			if (IsZoomAimingMode())
-			{
-				if (eacLookAt != cam_active)
-				{
-					if (!(mstate_wishful & mcRLookout))
-					{
-						mstate_wishful |= mcRLookout;
-					}
-					else
-					{
-						mstate_wishful &= mcRLookout;
-					}
-				}
-				else
-				{
-					psActorFlags.set(AF_RIGHT_SHOULDER, false);
-				}
-			}
-			break;
-		}
 		case kWPN_ZOOM_INC:
 		case kWPN_ZOOM_DEC:
 		{
@@ -1270,6 +1202,32 @@ void CActor::IR_GamepadKeyHold(int id)
 		case kUSE:
 		{
 			UpdatePickupMode();
+			break;
+		}
+	}
+
+	switch (get_binded_action(id, agAiming))
+	{
+		case kL_LOOKOUT:
+		{
+			if (IsZoomAimingMode())
+			{
+				if (eacLookAt != cam_active)
+					mstate_wishful |= mcLLookout;
+				else
+					psActorFlags.set(AF_RIGHT_SHOULDER, true);
+			}
+			break;
+		}
+		case kR_LOOKOUT:
+		{
+			if (IsZoomAimingMode())
+			{
+				if (eacLookAt != cam_active)
+					mstate_wishful |= mcRLookout;
+				else
+					psActorFlags.set(AF_RIGHT_SHOULDER, false);
+			}
 			break;
 		}
 	}
@@ -1619,7 +1577,7 @@ void CActor::ActorUse()
 					{
 						if (!m_pPersonWeLookingAt->deadbody_closed_status())
 						{
-							if (pEntityAliveWeLookingAt->AlreadyDie() && !isKeyHeld)
+							if (pEntityAliveWeLookingAt->AlreadyDie() && pEntityAliveWeLookingAt->GetLevelDeathTime() + 3000 < Device.dwTimeGlobal && !isKeyHeld)
 							{
 								pGameSP->StartCarBody(this, m_pPersonWeLookingAt);
 							}
@@ -2162,28 +2120,6 @@ void CActor::MakeKick()
 	if (CWeaponKnife* pWeaponKnife = knife_item != nullptr ? knife_item->cast_weapon_knife() : nullptr)
 	{
 		pWeaponKnife->FastKick();
-	}
-}
-
-void CActor::MakeThrowBolt()
-{
-	PIItem bolt_item = inventory().ItemFromSlot(BOLT_SLOT);
-	if (CBolt* pBolt = bolt_item != nullptr ? bolt_item->cast_bolt() : nullptr)
-	{
-		u8 slot = HudAnimator()->SlotToRestore();
-		pBolt->FastThrow();
-		HudAnimator()->SlotToRestore() = slot;
-	}
-}
-
-void CActor::MakeThrowGrenade()
-{
-	PIItem grenade_item = inventory().ItemFromSlot(GRENADE_SLOT);
-	if (CGrenade* pGrenade = grenade_item != nullptr ? grenade_item->cast_grenade() : nullptr)
-	{
-		u8 slot = HudAnimator()->SlotToRestore();
-		pGrenade->FastThrow();
-		HudAnimator()->SlotToRestore() = slot;
 	}
 }
 

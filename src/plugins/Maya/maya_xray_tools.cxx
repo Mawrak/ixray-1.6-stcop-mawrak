@@ -1,3 +1,12 @@
+//
+// i- X-Ray game object (*.ogf)
+// i- X-Ray game skeletal motions (*.omf)
+// i- X-Ray game detail object (*.dm)
+// ie X-Ray object (*.object)
+// -e X-Ray skeletal object (*.object)
+// -e X-Ray skeletal motion (*.skl)
+// i- X-Ray skeletal motions (.skls;*.skl)
+
 #define NOMINMAX
 #include <cstring>
 #include <algorithm>
@@ -23,8 +32,7 @@
 #include "maya_import_tools.h"
 #include "maya_export_tools.h"
 #include "maya_xray_material.h"
-#include "maya_bone_collision.h"
-#include "maya_options_script.h"
+#include "maya_progress.h"
 #include "xr_file_system.h"
 #include "xr_log.h"
 #include "xr_object.h"
@@ -34,26 +42,26 @@
 #include "xr_ogf_v4.h"
 #include "xr_skl_motion.h"
 #include "xr_obj_motion.h"
+#include "xr_object.h"
 #include "xr_sdk_version.h"
 
 using namespace xray_re;
 
-const char PLUGIN_VENDOR[] = "ZENOBIAN mod team, RedPython, Ray Of Hope, ForserX, Voskresenskii";
+const char PLUGIN_VENDOR[] = "ZENOBIAN mod team";
 const char PLUGIN_VERSION[] = __DATE__;
 const char BUILD_DATE[] = __DATE__ " at " __TIME__;
 
-const MString dm_reader("IX-Ray game detail object");
-const MString object_reader("IX-Ray object");
-const MString object_writer("IX-Ray object export");
-const MString skl_object_writer("IX-Ray skeletal object");
-const MString ogf_reader("IX-Ray game object");
-const MString omf_reader("IX-Ray game skeletal motions");
-const MString skl_translator("IX-Ray skeletal motion");
-const MString skls_reader("IX-Ray skeletal motions");
-const MString anm_writer("IX-Ray camera motion");
+const MString dm_reader("X-Ray game detail object");
+const MString object_reader("X-Ray object");
+const MString object_writer("X-Ray object");
+const MString skl_object_writer("X-Ray skeletal object");
+const MString ogf_reader("X-Ray game object");
+const MString omf_reader("X-Ray game skeletal motions");
+const MString skl_translator("X-Ray skeletal motion");
+const MString skls_reader("X-Ray skeletal motions");
+const MString anm_writer("X-Ray camera motion");
 
-class maya_dm_reader: public MPxFileTranslator
-{
+class maya_dm_reader: public MPxFileTranslator {
 public:
 	virtual MStatus		reader(const MFileObject& file, const MString& options, FileAccessMode mode);
 	virtual bool		haveReadMethod() const;
@@ -65,8 +73,7 @@ public:
 	static void*		creator();
 };
 
-class maya_object_reader: public MPxFileTranslator
-{
+class maya_object_reader: public MPxFileTranslator {
 public:
 	virtual MStatus		reader(const MFileObject& file, const MString& options, FileAccessMode mode);
 	virtual bool		haveReadMethod() const;
@@ -78,8 +85,7 @@ public:
 	static void*		creator();
 };
 
-class maya_object_writer: public MPxFileTranslator
-{
+class maya_object_writer: public MPxFileTranslator {
 public:
 	virtual MStatus		writer(const MFileObject& file, const MString& options, FileAccessMode mode);
 	virtual bool		haveWriteMethod() const;
@@ -90,8 +96,7 @@ public:
 	static void*		creator();
 };
 
-class maya_skl_object_writer: public MPxFileTranslator
-{
+class maya_skl_object_writer: public MPxFileTranslator {
 public:
 	virtual MStatus		writer(const MFileObject& file, const MString& options, FileAccessMode mode);
 	virtual bool		haveWriteMethod() const;
@@ -102,8 +107,7 @@ public:
 	static void*		creator();
 };
 
-class maya_ogf_reader: public MPxFileTranslator
-{
+class maya_ogf_reader: public MPxFileTranslator {
 public:
 	virtual MStatus		reader(const MFileObject& file, const MString& options, FileAccessMode mode);
 	virtual bool		haveReadMethod() const;
@@ -115,8 +119,7 @@ public:
 	static void*		creator();
 };
 
-class maya_omf_reader: public MPxFileTranslator
-{
+class maya_omf_reader: public MPxFileTranslator {
 public:
 	virtual MStatus		reader(const MFileObject& file, const MString& options, FileAccessMode mode);
 	virtual bool		haveReadMethod() const;
@@ -127,8 +130,7 @@ public:
 	static void*		creator();
 };
 
-class maya_skl_translator: public MPxFileTranslator
-{
+class maya_skl_translator: public MPxFileTranslator {
 public:
 	virtual MStatus		reader(const MFileObject& file, const MString& options, FileAccessMode mode);
 	virtual MStatus		writer(const MFileObject& file, const MString& options, FileAccessMode mode);
@@ -141,8 +143,7 @@ public:
 	static void*		creator();
 };
 
-class maya_skls_reader: public MPxFileTranslator
-{
+class maya_skls_reader: public MPxFileTranslator {
 public:
 	virtual MStatus		reader(const MFileObject& file, const MString& options, FileAccessMode mode);
 	virtual bool		haveReadMethod() const;
@@ -153,8 +154,7 @@ public:
 	static void*		creator();
 };
 
-class maya_anm_writer: public MPxFileTranslator
-{
+class maya_anm_writer: public MPxFileTranslator {
 public:
 	virtual MStatus		reader(const MFileObject& file, const MString& options, FileAccessMode mode);
 	virtual MStatus		writer(const MFileObject& file, const MString& options, FileAccessMode mode);
@@ -171,25 +171,29 @@ public:
 static inline MString extract_extension(const MFileObject& file)
 {
 	MString name(file.resolvedName());
+	// FIXME: assumes there _is_ extension.
 	return name.substring(name.rindex('.') + 1, name.numChars() - 1).toLowerCase();
 }
 
 MStatus maya_dm_reader::reader(const MFileObject& file, const MString& options, FileAccessMode mode)
 {
+	
+
 	MStatus status = MS::kFailure;
-	if (mode == kImportAccessMode || mode == kOpenAccessMode)
-	{
+	if (mode == kImportAccessMode || mode == kOpenAccessMode) {
+		start_progress(2, "Loading DM");
 		const MString path = file.resolvedFullName();
 		xr_dm* dm = new xr_dm;
-		if (dm->load_dm(path.asChar()))
-		{
+		if (dm->load_dm(path.asChar())) {
+			advance_progress();
 			dm->to_object();
+			advance_progress();
+			end_progress();
 			maya_import_tools(dm, &status, "smoothing_mode=normals");
-		}
-		else
-		{
+		} else {
 			msg("xray_re: can't open %s", path.asUTF8());
 			MGlobal::displayError(MString("xray_re: can't open ") + path);
+			end_progress();
 		}
 		delete dm;
 	}
@@ -211,32 +215,22 @@ MPxFileTranslator::MFileKind maya_dm_reader::identifyFile(const MFileObject& fil
 
 void* maya_dm_reader::creator() { return new maya_dm_reader; }
 
+// forward declaration: defined further below, used here by maya_object_reader::reader
 static void split_object_meshes_by_material(xr_object* object);
-
-static MString preferred_import_smoothing()
-{
-	MStringArray result;
-	if (!MGlobal::executeCommand(MString("optionVar -q \"ixrayImportSmoothingMode\""), result, false)
-			|| result.length() == 0)
-		return MString("normals");
-	const MString& value = result[0];
-	if (value == "normals" || value == "soc" || value == "cscop")
-		return value;
-	return MString("normals");
-}
 
 MStatus maya_object_reader::reader(const MFileObject& file, const MString& options, FileAccessMode mode)
 {
+	
+
 	MStatus status = MS::kFailure;
-	if (mode == kImportAccessMode || mode == kOpenAccessMode)
-	{
+	if (mode == kImportAccessMode || mode == kOpenAccessMode) {
 		const MString path = file.resolvedFullName();
 		xr_object* object = new xr_object;
-		if (object->load_object(path.asChar()))
-		{
+		if (object->load_object(path.asChar())) {
 			object->calculate_bind();
+			bool replace_mode = strstr(options.asChar(), "attach_to_selection=true") != 0;
 			bool split_explicitly_disabled = strstr(options.asChar(), "split_parts=false") != 0;
-			if (!split_explicitly_disabled)
+			if (!replace_mode && !split_explicitly_disabled)
 				split_object_meshes_by_material(object);
 
 			MString base_name = file.resolvedName();
@@ -246,15 +240,11 @@ MStatus maya_object_reader::reader(const MFileObject& file, const MString& optio
 			MString combined_options = options;
 			if (combined_options.length())
 				combined_options += ";";
-			if (strstr(options.asChar(), "smoothing_mode=") == nullptr)
-				combined_options += "smoothing_mode=" + preferred_import_smoothing() + ";";
 			combined_options += "group_name=";
 			combined_options += base_name;
 
 			maya_import_tools(object, &status, combined_options);
-		}
-		else
-		{
+		} else {
 			msg("xray_re: can't open %s", path.asUTF8());
 			MGlobal::displayError(MString("xray_re: can't open ") + path);
 		}
@@ -287,8 +277,9 @@ void* maya_object_reader::creator() { return new maya_object_reader; }
 
 MStatus maya_object_writer::writer(const MFileObject& file, const MString& options, FileAccessMode mode)
 {
-	switch (mode)
-	{
+	
+
+	switch (mode) {
 	case kExportAccessMode:
 	case kSaveAccessMode:
 	case kExportActiveAccessMode:
@@ -325,8 +316,9 @@ void* maya_object_writer::creator() { return new maya_object_writer; }
 
 MStatus maya_skl_object_writer::writer(const MFileObject& file, const MString& options, FileAccessMode mode)
 {
-	switch (mode)
-	{
+	
+
+	switch (mode) {
 	case kExportAccessMode:
 	case kSaveAccessMode:
 	case kExportActiveAccessMode:
@@ -382,13 +374,11 @@ static void split_object_meshes_by_material(xr_object* object)
 	object->meshes().clear();
 
 	for (xr_mesh_vec_it mit = original_meshes.begin(), mend = original_meshes.end();
-			mit != mend; ++mit)
-	{
+			mit != mend; ++mit) {
 		xr_mesh* src_mesh = *mit;
 		const xr_surfmap_vec& surfmaps = src_mesh->surfmaps();
 
-		if (surfmaps.size() <= 1)
-		{
+		if (surfmaps.size() <= 1) {
 			object->meshes().push_back(src_mesh);
 			continue;
 		}
@@ -401,8 +391,7 @@ static void split_object_meshes_by_material(xr_object* object)
 		const fvector3_vec& src_cnorm = src_mesh->cnorm();
 
 		for (xr_surfmap_vec_cit sit = surfmaps.begin(), send = surfmaps.end();
-				sit != send; ++sit)
-		{
+				sit != send; ++sit) {
 			const xr_surfmap* smap = *sit;
 			if (smap->faces.empty())
 				continue;
@@ -411,27 +400,22 @@ static void split_object_meshes_by_material(xr_object* object)
 			part->name() = smap->surface->name();
 			part->flags() = src_mesh->flags();
 
-			std::map<uint32_t, uint32_t> point_remap;
-			std::map<xr_vmap*, xr_vmap*> vmap_remap;
+			std::map<uint32_t, uint32_t> point_remap;	// src point idx -> local idx
+			std::map<xr_vmap*, xr_vmap*> vmap_remap;	// src vmap -> local vmap
 			xr_surfmap* local_smap = new xr_surfmap(smap->surface);
 
 			for (std::vector<uint32_t>::const_iterator fit = smap->faces.begin(),
-					fend = smap->faces.end(); fit != fend; ++fit)
-			{
+					fend = smap->faces.end(); fit != fend; ++fit) {
 				const lw_face& src_face = src_faces[*fit];
 				lw_face local_face;
 
-				for (uint_fast32_t i = 0; i != 3; ++i)
-				{
+				for (uint_fast32_t i = 0; i != 3; ++i) {
 					uint32_t src_v = src_face.v[i];
 					std::map<uint32_t, uint32_t>::iterator pit = point_remap.find(src_v);
 					uint32_t local_v;
-					if (pit != point_remap.end())
-					{
+					if (pit != point_remap.end()) {
 						local_v = pit->second;
-					}
-					else
-					{
+					} else {
 						local_v = uint32_t(part->points().size());
 						part->points().push_back(src_points[src_v]);
 						if (!src_vnorm.empty())
@@ -440,8 +424,7 @@ static void split_object_meshes_by_material(xr_object* object)
 					}
 					local_face.v[i] = local_v;
 
-					if (!src_cnorm.empty())
-					{
+					if (!src_cnorm.empty()) {
 						uint32_t src_corner = uint32_t(*fit)*3 + i;
 						part->cnorm().push_back(src_cnorm[src_corner]);
 					}
@@ -449,20 +432,16 @@ static void split_object_meshes_by_material(xr_object* object)
 					const lw_vmref& src_ref = src_vmrefs[src_face.ref[i]];
 					lw_vmref local_ref;
 					for (lw_vmref::const_iterator rit = src_ref.begin(),
-							rend = src_ref.end(); rit != rend; ++rit)
-					{
+							rend = src_ref.end(); rit != rend; ++rit) {
 						xr_vmap* src_vmap = src_vmaps[rit->vmap];
 						xr_vmap* local_vmap = find_or_create_local_vmap(
 							part->vmaps(), vmap_remap, src_vmap);
 						uint32_t local_offset;
-						if (src_vmap->type() == xr_vmap::VMT_UV)
-						{
+						if (src_vmap->type() == xr_vmap::VMT_UV) {
 							const xr_uv_vmap* src_uv = static_cast<const xr_uv_vmap*>(src_vmap);
 							local_offset = static_cast<xr_uv_vmap*>(local_vmap)->add_uv(
 								src_uv->uvs()[rit->offset], local_v);
-						}
-						else
-						{
+						} else {
 							const xr_weight_vmap* src_w = static_cast<const xr_weight_vmap*>(src_vmap);
 							local_offset = static_cast<xr_weight_vmap*>(local_vmap)->add_weight(
 								src_w->weights()[rit->offset], local_v);
@@ -494,22 +473,18 @@ static void split_ogf_children(xr_ogf* ogf)
 
 	const xr_ogf_vec& children = ogf->children();
 
-	for (size_t i = 0, n = children.size(); i != n; ++i)
-	{
+	for (size_t i = 0, n = children.size(); i != n; ++i) {
 		xr_ogf* child = children[i];
 
-		if (child->hierarchical() && !child->children().empty())
-		{
+		if (child->hierarchical() && !child->children().empty()) {
 			split_ogf_children(child);
 			for (xr_mesh_vec_it mit = child->meshes().begin(),
-					mend = child->meshes().end(); mit != mend; ++mit)
-			{
+					mend = child->meshes().end(); mit != mend; ++mit) {
 				ogf->meshes().push_back(*mit);
 			}
 			child->meshes().clear();
 			for (xr_surface_vec_it sit = child->surfaces().begin(),
-					send = child->surfaces().end(); sit != send; ++sit)
-			{
+					send = child->surfaces().end(); sit != send; ++sit) {
 				ogf->surfaces().push_back(*sit);
 			}
 			child->surfaces().clear();
@@ -528,15 +503,13 @@ static void split_ogf_children(xr_ogf* ogf)
 		std::string part_name;
 		if (!mesh->surfmaps().empty() && mesh->surfmaps().front()->surface)
 			part_name = mesh->surfmaps().front()->surface->name();
-		if (part_name.empty())
-		{
+		if (part_name.empty()) {
 			part_name = child->shader();
 			std::string::size_type pos = part_name.find_last_of("\\/");
 			if (pos != std::string::npos)
 				part_name = part_name.substr(pos + 1);
 		}
-		if (part_name.empty())
-		{
+		if (part_name.empty()) {
 			char buf[32];
 			xr_snprintf(buf, sizeof(buf), "part_%u", unsigned(i));
 			part_name = buf;
@@ -544,11 +517,10 @@ static void split_ogf_children(xr_ogf* ogf)
 		mesh->name() = part_name;
 
 		ogf->meshes().push_back(mesh);
-		child->meshes().clear();
+		child->meshes().clear();	
 
 		for (xr_surface_vec_it sit = child->surfaces().begin(),
-				send = child->surfaces().end(); sit != send; ++sit)
-		{
+				send = child->surfaces().end(); sit != send; ++sit) {
 			ogf->surfaces().push_back(*sit);
 		}
 		child->surfaces().clear();
@@ -557,29 +529,35 @@ static void split_ogf_children(xr_ogf* ogf)
 
 MStatus maya_ogf_reader::reader(const MFileObject& file, const MString& options, FileAccessMode mode)
 {
+	
+
 	MStatus status = MS::kFailure;
-	if (mode == kImportAccessMode || mode == kOpenAccessMode)
-	{
+	if (mode == kImportAccessMode || mode == kOpenAccessMode) {
+		start_progress(2, "Loading OGF");
 		const MString path = file.resolvedFullName();
 		xr_ogf* ogf = xr_ogf::load_ogf(path.asChar());
-		if (ogf)
-		{
+		if (ogf) {
+			advance_progress();
 			ogf->calculate_bind();
+			bool replace_mode = strstr(options.asChar(), "attach_to_selection=true") != 0;
 			bool split_explicitly_disabled = strstr(options.asChar(), "split_parts=false") != 0;
-			if (!split_explicitly_disabled && ogf->hierarchical() && !ogf->children().empty())
+			if (!replace_mode && !split_explicitly_disabled && ogf->hierarchical() && !ogf->children().empty())
 				split_ogf_children(ogf);
 			else
 				ogf->to_object();
-			MString smoothing_mode = preferred_import_smoothing();
+			advance_progress();
+			end_progress();
+			MString smoothing_mode = "normals";
 			const char* sm = strstr(options.asChar(), "smoothing_mode=");
-			if (sm)
-			{
+			if (sm) {
 				sm += strlen("smoothing_mode=");
 				const char* end = strchr(sm, ';');
 				smoothing_mode = end ? MString(sm, int(end - sm)) : MString(sm);
 			}
 			MString combined_options("smoothing_mode=");
 			combined_options += smoothing_mode;
+			if (replace_mode)
+				combined_options += ";attach_to_selection=true";
 
 			MString base_name = file.resolvedName();
 			int dot = base_name.rindex('.');
@@ -590,11 +568,10 @@ MStatus maya_ogf_reader::reader(const MFileObject& file, const MString& options,
 
 			maya_import_tools(ogf, &status, combined_options);
 			delete ogf;
-		}
-		else
-		{
+		} else {
 			msg("xray_re: can't open %s", path.asUTF8());
 			MGlobal::displayError(MString("xray_re: can't open ") + path);
+			end_progress();
 		}
 	}
 	return status;
@@ -617,25 +594,26 @@ void* maya_ogf_reader::creator() { return new maya_ogf_reader; }
 
 MStatus maya_omf_reader::reader(const MFileObject& file, const MString& options, FileAccessMode mode)
 {
+	
+
 	MStatus status = MS::kFailure;
-	if (mode == kImportAccessMode)
-	{
+	if (mode == kImportAccessMode) {
+		start_progress(1, "Loading OMF");
 		const MString path = file.resolvedFullName();
 		xr_ogf_v4* omf = new xr_ogf_v4;
-		if (omf->load_omf(path.asChar()))
-		{
+		if (omf->load_omf(path.asChar())) {
+			advance_progress();
 			maya_import_tools imp_tools;
 			MObject character_obj = imp_tools.lookup_character(&status);
-			if (status)
-			{
+			if (status) {
 				imp_tools.reset_animation_state();
 				status = imp_tools.import_motions(omf->motions(), character_obj);
 			}
-		}
-		else
-		{
+			end_progress();
+		} else {
 			msg("xray_re: can't open %s", path.asUTF8());
 			MGlobal::displayError(MString("xray_re: can't open ") + path);
+			end_progress();
 		}
 		delete omf;
 	}
@@ -657,22 +635,21 @@ void* maya_omf_reader::creator() { return new maya_omf_reader; }
 
 MStatus maya_skl_translator::reader(const MFileObject& file, const MString& options, FileAccessMode mode)
 {
+	
+
 	MStatus status = MS::kFailure;
-	if (mode == kImportAccessMode)
-	{
+	if (mode == kImportAccessMode) {
 		maya_import_tools imp_tools;
 		const MString path = file.resolvedFullName();
 		xr_skl_motion* smotion = new xr_skl_motion;
-		if (!smotion->load_skl(path.asChar()))
-		{
+		if (!smotion->load_skl(path.asChar())) {
 			msg("xray_re: can't open %s", path.asUTF8());
 			MGlobal::displayError(MString("xray_re: can't open ") + path);
 			delete smotion;
 			return MS::kFailure;
 		}
 		MObject character_obj = imp_tools.lookup_character(&status);
-		if (status)
-		{
+		if (status) {
 			imp_tools.reset_animation_state();
 			status = imp_tools.import_motion(smotion, character_obj);
 		}
@@ -683,8 +660,9 @@ MStatus maya_skl_translator::reader(const MFileObject& file, const MString& opti
 
 MStatus maya_skl_translator::writer(const MFileObject& file, const MString& options, FileAccessMode mode)
 {
-	switch (mode)
-	{
+	
+
+	switch (mode) {
 	case kExportAccessMode:
 	case kSaveAccessMode:
 	case kExportActiveAccessMode:
@@ -714,22 +692,21 @@ void* maya_skl_translator::creator() { return new maya_skl_translator; }
 
 MStatus maya_skls_reader::reader(const MFileObject& file, const MString& options, FileAccessMode mode)
 {
+	
+
 	MStatus status = MS::kFailure;
-	if (mode == kImportAccessMode)
-	{
+	if (mode == kImportAccessMode) {
 		maya_import_tools imp_tools;
 		const MString path = file.resolvedFullName();
 		xr_object* object = new xr_object;
-		if (!object->load_skls(path.asChar()))
-		{
+		if (!object->load_skls(path.asChar())) {
 			msg("xray_re: can't open %s", path.asUTF8());
 			MGlobal::displayError(MString("xray_re: can't open ") + path);
 			delete object;
 			return MS::kFailure;
 		}
 		MObject character_obj = imp_tools.lookup_character(&status);
-		if (status)
-		{
+		if (status) {
 			imp_tools.reset_animation_state();
 			status = imp_tools.import_motions(object->motions(), character_obj);
 		}
@@ -758,11 +735,12 @@ MPxFileTranslator::MFileKind maya_skls_reader::identifyFile(const MFileObject& f
 
 void* maya_skls_reader::creator() { return new maya_skls_reader; }
 
+// exact copy of the helper of the same name in maya_import_tools.cxx (static,
+// file-local scope there, so it isn't visible from this translation unit).
 static inline void append_key(MTimeArray& times, MDoubleArray& values, double time, double value)
 {
 	unsigned size = values.length();
-	if (size == 0 || values[size-1] != value)
-	{
+	if (size == 0 || values[size-1] != value) {
 		times.append(MTime(time, MTime::kSeconds));
 		values.append(value);
 	}
@@ -776,8 +754,7 @@ MStatus maya_anm_writer::reader(const MFileObject& file, const MString& options,
 
 	MSelectionList s_list;
 	MGlobal::getActiveSelectionList(s_list);
-	if (s_list.length() != 1)
-	{
+	if (s_list.length() != 1) {
 		msg("xray_re: select exactly one object to apply the .anm to");
 		MGlobal::displayError("xray_re: select exactly one object to apply the .anm to");
 		return status;
@@ -785,8 +762,7 @@ MStatus maya_anm_writer::reader(const MFileObject& file, const MString& options,
 
 	MDagPath dp;
 	status = s_list.getDagPath(0, dp);
-	if (!status)
-	{
+	if (!status) {
 		msg("xray_re: selected object has no transform");
 		MGlobal::displayError("xray_re: selected object has no transform");
 		return status;
@@ -796,8 +772,7 @@ MStatus maya_anm_writer::reader(const MFileObject& file, const MString& options,
 
 	const MString path = file.resolvedFullName();
 	xr_obj_motion anm;
-	if (!anm.load_anm(path.asChar()))
-	{
+	if (!anm.load_anm(path.asChar())) {
 		msg("xray_re: can't open %s", path.asUTF8());
 		MGlobal::displayError(MString("xray_re: can't open ") + path);
 		return MS::kFailure;
@@ -811,8 +786,7 @@ MStatus maya_anm_writer::reader(const MFileObject& file, const MString& options,
 	MDoubleArray values[6];
 
 	for (int32_t frame = anm.frame_start(), frame_end = anm.frame_end();
-			frame < frame_end; ++frame)
-	{
+			frame < frame_end; ++frame) {
 		double time = frame/fps;
 
 		fvector3 offs, rot;
@@ -830,8 +804,7 @@ MStatus maya_anm_writer::reader(const MFileObject& file, const MString& options,
 	}
 
 	static const MString k_plug_names[6] = { "tx", "ty", "tz", "rx", "ry", "rz" };
-	for (uint_fast32_t i = 6; i != 0;)
-	{
+	for (uint_fast32_t i = 6; i != 0;) {
 		--i;
 		MFnAnimCurve curve_fn;
 		MObject curve_obj = curve_fn.create(i >= 3 ?
@@ -861,6 +834,8 @@ MStatus maya_anm_writer::reader(const MFileObject& file, const MString& options,
 
 MStatus maya_anm_writer::writer(const MFileObject& file, const MString& options, FileAccessMode mode)
 {
+	
+
 	switch(mode)
 	{
 	case kExportAccessMode:
@@ -895,57 +870,20 @@ MStatus initializePlugin(MObject obj)
 {
 	MStatus status;
 
-	MFnPlugin plugin_fn(obj, PLUGIN_VENDOR, PLUGIN_VERSION);
-
-	MStatus execute_status = MGlobal::executeCommand(xray_re_object_options_script, true);
-	if (execute_status != MS::kSuccess)
-		MGlobal::displayError(MString("IX-Ray: failed to load translator options MEL (") + execute_status.errorString() + ")");
-
+	MString fs_spec("$MAYA_LOCATION\\bin\\xray_path.ltx");
 	xr_file_system& fs = xr_file_system::instance();
-	MString game_root(MGlobal::optionVarStringValue("ixrayGameRoot").asChar());
-	while (game_root.length() > 0 && (game_root.substring(game_root.length() - 1, game_root.length() - 1) == "/"
-			|| game_root.substring(game_root.length() - 1, game_root.length() - 1) == "\\"))
-	{
-		game_root = game_root.substring(0, game_root.length() - 1);
-	}
-	if (game_root.length() == 0 && MGlobal::mayaState() != MGlobal::kBatch)
-	{
-		MStringArray dialog_result;
-		if (MGlobal::executeCommand(MString("fileDialog2 -fm 3 -okCaption \"Select Game Root\" -caption \"IX-Ray: select the game working directory\""), dialog_result, false)
-				&& dialog_result.length() > 0)
-		{
-			game_root = dialog_result[0];
-			while (game_root.length() > 0 && (game_root.substring(game_root.length() - 1, game_root.length() - 1) == "/"
-					|| game_root.substring(game_root.length() - 1, game_root.length() - 1) == "\\"))
-			{
-				game_root = game_root.substring(0, game_root.length() - 1);
-			}
-			MGlobal::setOptionVarValue(MString("ixrayGameRoot"), game_root);
-		}
-	}
-	if (game_root.length() == 0)
-	{
-		MGlobal::displayWarning("IX-Ray: game working directory is not set; pick it in the IX-Ray menu (Set Game Root) and restart Maya");
-	}
-	else
-	{
-		fs.update_path(PA_GAME_DATA, game_root.asChar(), "gamedata\\");
-		fs.update_path("$ixr_addons$", game_root.asChar(), "ixr_addons\\");
-		fs.update_path(PA_GAME_CONFIG, PA_GAME_DATA, "configs\\");
-		fs.update_path(PA_GAME_TEXTURES, PA_GAME_DATA, "textures\\");
-		fs.update_path(PA_GAME_MESHES, PA_GAME_DATA, "meshes\\");
-		fs.update_path(PA_GAME_SCRIPTS, PA_GAME_DATA, "scripts\\");
-		fs.update_path(PA_GAME_LEVELS, PA_GAME_DATA, "levels\\");
-		fs.update_path(PA_GAME_SPAWN, PA_GAME_DATA, "spawns\\");
-		fs.update_path(PA_GAME_SOUNDS, PA_GAME_DATA, "sounds\\");
-		fs.update_path(PA_LOGS, game_root.asChar(), "logs\\");
+	if (!fs.initialize(fs_spec.expandEnvironmentVariablesAndTilde().asChar())) {
+		msg("xray_re: can't initialize the file system");
+		MGlobal::displayError("xray_re: can't initialize the file system");
+		return MS::kFailure;
 	}
 	xr_log::instance().init("xrayMayaTools");
-	msg("IX-Ray Maya tools for Maya %s ", MGlobal::mayaVersion().asChar());
-	MGlobal::displayInfo(MString("IX-Ray Maya tools for Maya ") + MGlobal::mayaVersion());
+	msg("X-Ray Maya tools for Maya %s ", MGlobal::mayaVersion().asChar());
+	MGlobal::displayInfo(MString("X-Ray Maya tools for Maya ") + MGlobal::mayaVersion());
 	msg("xray_re built on %s ", BUILD_DATE);
 	MGlobal::displayInfo(MString("xray_re built on ") + BUILD_DATE);
 
+	MFnPlugin plugin_fn(obj, PLUGIN_VENDOR, PLUGIN_VERSION);
 	if (!(status = maya_xray_material::initialize(plugin_fn)))
 		return status;
 	if (!(status = plugin_fn.registerFileTranslator(object_reader, "", maya_object_reader::creator, "xray_re_object_import_options", "", true)))
@@ -966,15 +904,12 @@ MStatus initializePlugin(MObject obj)
 		return status;
 	if (!(status = plugin_fn.registerFileTranslator(anm_writer, "", maya_anm_writer::creator, "", "", true)))
 		return status;
-	if (!(status = initialize_bone_collision()))
-		return status;
 
 	return status;
 }
 
 MStatus uninitializePlugin(MObject obj)
 {
-	uninitialize_bone_collision();
 	MFnPlugin plugin_fn(obj);
 	maya_xray_material::uninitialize(plugin_fn);
 	plugin_fn.deregisterFileTranslator(object_reader);

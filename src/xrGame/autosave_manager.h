@@ -13,6 +13,7 @@ private:
 	typedef ISheduled	inherited;
 
 private:
+	u32		m_autosave_interval;
 	u32		m_last_autosave_time;
 	u32		m_delay_autosave_interval;
 	u32		m_not_ready_count;
@@ -27,6 +28,7 @@ public:
 			void		on_game_loaded			();
 
 public:
+	IC		u32			autosave_interval		() const;
 	IC		u32			last_autosave_time		() const;
 	IC		u32			not_ready_count			() const;
 	IC		void		inc_not_ready			();

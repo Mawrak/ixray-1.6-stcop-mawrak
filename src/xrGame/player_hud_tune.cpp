@@ -184,15 +184,21 @@ void attachable_hud_item::tune(Fvector values)
 bool forceFPDraw = false;
 bool forceFP2Draw = false;
 bool forceSPDraw = false;
-bool forceCBDraw = false;
 
 void attachable_hud_item::debug_draw_firedeps()
 {
 #ifdef DEBUG_DRAW
-	bool bForce = (hud_adj_mode == 3 || hud_adj_mode == 4 || forceFPDraw || forceFP2Draw || forceSPDraw || forceCBDraw);
+	bool bForce = (hud_adj_mode==3||hud_adj_mode==4||forceFPDraw||forceFP2Draw||forceSPDraw);
 
 	if(hud_adj_mode==5||hud_adj_mode==6||hud_adj_mode==7 ||bForce)
 	{
+		if (!m_measures.m_prop_flags.test(hud_item_measures::e_fire_point) &&
+			!m_measures.m_prop_flags.test(hud_item_measures::e_fire_point2) &&
+			!m_measures.m_prop_flags.test(hud_item_measures::e_shell_point))
+		{
+			return;
+		}
+
 		CDebugRenderer			&render = Level().debug_renderer();
 
 		firedeps			fd;
@@ -230,13 +236,6 @@ void attachable_hud_item::debug_draw_firedeps()
 			obb.m_translate.set(SP);
 			obb.xform_full(trans);
 			render.draw_obb(trans, color_xrgb(0, 255, 0));
-		}
-
-		if (forceCBDraw)
-		{
-			obb = m_collision_box;
-			obb.xform_full(trans);
-			render.draw_obb(trans, color_rgba(0, 255, 0, 150));
 		}
 	}
 #endif // DEBUG

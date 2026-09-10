@@ -111,92 +111,39 @@ void CWeaponMagazined::LoadSounds(const char* section)
 	m_layered_sounds.LoadSound(section, "snd_shoot", "sndShot", false, m_eSoundShot, st_Shooting);
 	if (SoundExist(section, "snd_shoot_actor"))
 	{
-		m_eSoundsShotFlags.set(ESoundsShotFlags::ssf_shoot_actor, true);
+		m_eSoundsFlags.set(ESoundsFlags::sf_shoot_actor, true);
 		m_layered_sounds.LoadSound(section, "snd_shoot_actor", "sndShotActor", false, m_eSoundShot, st_Shooting);
 	}
 
 	m_layered_sounds.LoadSound(section, "snd_silncer_shot", "sndSilencerShot", false, m_eSoundShot, st_Shooting);
 	if (SoundExist(section, "snd_silncer_shot_actor"))
 	{
-		m_eSoundsShotFlags.set(ESoundsShotFlags::ssf_shoot_actor_sil, true);
+		m_eSoundsFlags.set(ESoundsFlags::sf_shoot_actor_sil, true);
 		m_layered_sounds.LoadSound(section, "snd_silncer_shot_actor", "sndSilencerShotActor", false, m_eSoundShot, st_Shooting);
 	}
 
 	if (SoundExist(section, "snd_shot_last"))
 	{
-		m_eSoundsShotFlags.set(ESoundsShotFlags::ssf_shoot_last, true);
+		m_eSoundsFlags.set(ESoundsFlags::sf_shoot_last, true);
 		m_layered_sounds.LoadSound(section, "snd_shot_last", "sndShotLast", false, m_eSoundShot, st_Shooting);
 	}
 
 	if (SoundExist(section, "snd_shot_last_actor"))
 	{
-		m_eSoundsShotFlags.set(ESoundsShotFlags::ssf_shoot_actor_last, true);
+		m_eSoundsFlags.set(ESoundsFlags::sf_shoot_actor_last, true);
 		m_layered_sounds.LoadSound(section, "snd_shot_last_actor", "sndShotLastActor", false, m_eSoundShot, st_Shooting);
 	}
 
 	if (SoundExist(section, "snd_silencer_shot_last"))
 	{
-		m_eSoundsShotFlags.set(ESoundsShotFlags::ssf_shoot_last_sil, true);
+		m_eSoundsFlags.set(ESoundsFlags::sf_shoot_last_sil, true);
 		m_layered_sounds.LoadSound(section, "snd_silencer_shot_last", "sndSilencerShotLast", false, m_eSoundShot, st_Shooting);
 	}
 
 	if (SoundExist(section, "snd_silencer_shot_last_actor"))
 	{
-		m_eSoundsShotFlags.set(ESoundsShotFlags::ssf_shoot_actor_last_sil, true);
+		m_eSoundsFlags.set(ESoundsFlags::sf_shoot_actor_last_sil, true);
 		m_layered_sounds.LoadSound(section, "snd_silencer_shot_last_actor", "sndSilencerShotLastActor", false, m_eSoundShot, st_Shooting);
-	}
-
-
-
-
-
-
-
-	if (SoundExist(section, "snd_shoot_indoor"))
-	{
-		m_eSoundsShotFlags.set(ESoundsShotFlags::ssf_shoot_indoor, true);
-		m_layered_sounds.LoadSound(section, "snd_shoot_indoor", "sndShotIndoor", false, m_eSoundShot, st_Shooting);
-	}
-
-	if (SoundExist(section, "snd_shoot_actor_indoor"))
-	{
-		m_eSoundsShotFlags.set(ESoundsShotFlags::ssf_shoot_indoor_actor, true);
-		m_layered_sounds.LoadSound(section, "snd_shoot_actor_indoor", "sndShotActorIndoor", false, m_eSoundShot, st_Shooting);
-	}
-
-	if (SoundExist(section, "snd_silncer_shot_indoor"))
-	{
-		m_eSoundsShotFlags.set(ESoundsShotFlags::ssf_shoot_indoor_sil, true);
-		m_layered_sounds.LoadSound(section, "snd_silncer_shot_indoor", "sndSilencerShotIndoor", false, m_eSoundShot, st_Shooting);
-	}
-	if (SoundExist(section, "snd_silncer_shot_actor_indoor"))
-	{
-		m_eSoundsShotFlags.set(ESoundsShotFlags::ssf_shoot_indoor_actor_sil, true);
-		m_layered_sounds.LoadSound(section, "snd_silncer_shot_actor_indoor", "sndSilencerShotActorIndoor", false, m_eSoundShot, st_Shooting);
-	}
-
-	if (SoundExist(section, "snd_shot_last_indoor"))
-	{
-		m_eSoundsShotFlags.set(ESoundsShotFlags::ssf_shoot_indoor_last, true);
-		m_layered_sounds.LoadSound(section, "snd_shot_last_indoor", "sndShotLastIndoor", false, m_eSoundShot, st_Shooting);
-	}
-
-	if (SoundExist(section, "snd_shot_last_actor_indoor"))
-	{
-		m_eSoundsShotFlags.set(ESoundsShotFlags::ssf_shoot_indoor_actor_last, true);
-		m_layered_sounds.LoadSound(section, "snd_shot_last_actor_indoor", "sndShotLastActorIndoor", false, m_eSoundShot, st_Shooting);
-	}
-
-	if (SoundExist(section, "snd_silencer_shot_last_indoor"))
-	{
-		m_eSoundsShotFlags.set(ESoundsShotFlags::ssf_shoot_indoor_last_sil, true);
-		m_layered_sounds.LoadSound(section, "snd_silencer_shot_last_indoor", "sndSilencerShotLastIndoor", false, m_eSoundShot, st_Shooting);
-	}
-
-	if (SoundExist(section, "snd_silencer_shot_last_actor_indoor"))
-	{
-		m_eSoundsShotFlags.set(ESoundsShotFlags::ssf_shoot_indoor_actor_last_sil, true);
-		m_layered_sounds.LoadSound(section, "snd_silencer_shot_last_actor_indoor", "sndSilencerShotLastActorIndoor", false, m_eSoundShot, st_Shooting);
 	}
 
 	m_sounds.LoadSound(section, "snd_empty", "sndEmptyClick", true, m_eSoundEmptyClick);
@@ -347,6 +294,7 @@ void CWeaponMagazined::LoadSounds(const char* section)
 		m_sounds.LoadSound(section, "snd_chamber_check_empty", "sndChamberCheckEmpty", true, m_eSoundReload);
 	}
 
+	//Only for improve misfire external!
 	if (SoundExist(section, "snd_jam"))
 	{
 		m_eSoundsFlags.set(ESoundsFlags::sf_jam, true);
@@ -626,17 +574,6 @@ void CWeaponMagazined::FireStart()
 			else
 			{
 				OnEmptyClick();
-
-				if (CActor* pActor = H_Parent() != nullptr ? H_Parent()->cast_actor() : nullptr)
-				{
-					if (CCustomDevice* pDevice = pActor->GetDevice())
-					{
-						if (IsMisfire() && pDevice->CanJammed() || pDevice->CanShooting(true))
-						{
-							pDevice->SwitchState(IsMisfire() ? CCustomDevice::EDeviceStates::eHandJammed : CCustomDevice::EDeviceStates::eHandDry);
-						}
-					}
-				}
 			}
 		}
 	}
@@ -662,17 +599,6 @@ void CWeaponMagazined::FireStart()
 		else
 		{
 			OnEmptyClick();
-
-			if (CActor* pActor = H_Parent() != nullptr ? H_Parent()->cast_actor() : nullptr)
-			{
-				if (CCustomDevice* pDevice = pActor->GetDevice())
-				{
-					if (IsMisfire() && pDevice->CanJammed() || pDevice->CanShooting(true))
-					{
-						pDevice->SwitchState(IsMisfire() ? CCustomDevice::EDeviceStates::eHandJammed : CCustomDevice::EDeviceStates::eHandDry);
-					}
-				}
-			}
 		}
 	}
 }
@@ -1127,14 +1053,7 @@ void CWeaponMagazined::OnStateSwitch	(u8 S)
 		}
 		else
 		{
-			if (m_eSoundsFlags.test(ESoundsFlags::sf_jam))
-			{
-				m_layered_sounds.PlaySound("sndJam", get_LastFP(), H_Parent(), GetHUDmode(), false);
-			}
-			else
-			{
-				OnEmptyClick();
-			}
+			OnEmptyClick();
 			SwitchState(eIdle);
 		}
 
@@ -1456,25 +1375,12 @@ void CWeaponMagazined::state_Fire(float dt)
 		StopShotEffector(); 
 	}
 
-	if (fShotTimeCounter < 0)
+	if(fShotTimeCounter<0)
 	{
-		if (iAmmoElapsed == 0)
-		{
+		if(iAmmoElapsed == 0)
 			OnMagazineEmpty();
-		}
 
-		if (ParentIsActor())
-		{
-			if (m_bStopedAfterQueueFired || iAmmoElapsed == 0)
-			{
-				StopShooting();
-				SetPending(false);
-			}
-		}
-		else
-		{
-			StopShooting();
-		}
+		StopShooting();
 
 		if (ParentIsActor() && is_shooting_end_callback)
 		{
@@ -1485,7 +1391,7 @@ void CWeaponMagazined::state_Fire(float dt)
 	}
 	else
 	{
-		fShotTimeCounter -= dt;
+		fShotTimeCounter			-=	dt;
 	}
 }
 
@@ -1589,7 +1495,7 @@ void CWeaponMagazined::state_FireChamber(float dt)
 		UpdateSounds();
 	}
 
-	if (iAmmoChamberElapsed == 0 ||
+	if (iAmmoElapsed == 0 ||
 		(m_iQueueSize > 0 && m_iShotNum >= m_iQueueSize) ||
 		!IsWorking() && H_Parent())
 	{
@@ -1599,22 +1505,9 @@ void CWeaponMagazined::state_FireChamber(float dt)
 	if (fShotTimeCounter < 0)
 	{
 		if (iAmmoChamberElapsed == 0)
-		{
 			OnMagazineEmpty();
-		}
 
-        if (ParentIsActor())
-		{
-			if (m_bStopedAfterQueueFired || iAmmoChamberElapsed == 0)
-			{
-				StopShooting();
-				SetPending(false);
-			}
-		}
-		else
-		{
-			StopShooting();
-		}
+		StopShooting();
 
 		if (ParentIsActor() && is_shooting_end_callback)
 		{
@@ -1639,114 +1532,58 @@ void CWeaponMagazined::SelectShotSound()
 	int get_elapsed = GetAmmoElapsed() + GetAmmoChamberElapsed();
 	bool parent_actor = ParentIsActor();
 
-	if ((parent_actor && m_eSoundsShotFlags.test(ESoundsShotFlags::ssf_shoot_indoor_actor) || m_eSoundsShotFlags.test(ESoundsShotFlags::ssf_shoot_indoor)) && Sound->object_in_audiozone(get_LastFP()))
+	if (IsSilencerAttached())
 	{
-		if (IsSilencerAttached())
+		if (get_elapsed == 1 && m_eSoundsFlags.test(ESoundsFlags::sf_shoot_last_sil))
 		{
-			if (get_elapsed == 1 && m_eSoundsShotFlags.test(ESoundsShotFlags::ssf_shoot_indoor_last_sil))
+			if (parent_actor && m_eSoundsFlags.test(ESoundsFlags::sf_shoot_actor_last_sil))
 			{
-				if (parent_actor && m_eSoundsShotFlags.test(ESoundsShotFlags::ssf_shoot_indoor_actor_last_sil))
-				{
-					m_sSndShotCurrent = "sndSilencerShotLastActorIndoor";
-				}
-				else
-				{
-					m_sSndShotCurrent = "sndSilencerShotLastIndoor";
-				}
+				m_sSndShotCurrent = "sndSilencerShotLastActor";
 			}
 			else
 			{
-				if (parent_actor && m_eSoundsShotFlags.test(ESoundsShotFlags::ssf_shoot_indoor_actor_sil))
-				{
-					m_sSndShotCurrent = "sndSilencerShotActorIndoor";
-				}
-				else
-				{
-					m_sSndShotCurrent = m_layered_sounds.FindSoundItem("sndSilencerShotIndoor", false) ? "sndSilencerShotIndoor" : "sndShotIndoor";
-				}
+				m_sSndShotCurrent = "sndSilencerShotLast";
 			}
 		}
 		else
 		{
-			if (get_elapsed == 1 && m_eSoundsShotFlags.test(ESoundsShotFlags::ssf_shoot_indoor_last))
+			if (parent_actor && m_eSoundsFlags.test(ESoundsFlags::sf_shoot_actor_sil))
 			{
-				if (parent_actor && m_eSoundsShotFlags.test(ESoundsShotFlags::ssf_shoot_indoor_actor_last))
-				{
-					m_sSndShotCurrent = "sndShotLastActorIndoor";
-				}
-				else
-				{
-					m_sSndShotCurrent = "sndShotLastIndoor";
-				}
+				m_sSndShotCurrent = "sndSilencerShotActor";
 			}
 			else
 			{
-				if (parent_actor && m_eSoundsShotFlags.test(ESoundsShotFlags::ssf_shoot_indoor_actor))
-				{
-					m_sSndShotCurrent = "sndShotActorIndoor";
-				}
-				else
-				{
-					m_sSndShotCurrent = "sndShotIndoor";
-				}
+				m_sSndShotCurrent = m_layered_sounds.FindSoundItem("sndSilencerShot", false) ? "sndSilencerShot" : "sndShot";
 			}
 		}
 	}
 	else
 	{
-		if (IsSilencerAttached())
+		if (get_elapsed == 1 && m_eSoundsFlags.test(ESoundsFlags::sf_shoot_last))
 		{
-			if (get_elapsed == 1 && m_eSoundsShotFlags.test(ESoundsShotFlags::ssf_shoot_last_sil))
+			if (parent_actor && m_eSoundsFlags.test(ESoundsFlags::sf_shoot_actor_last))
 			{
-				if (parent_actor && m_eSoundsShotFlags.test(ESoundsShotFlags::ssf_shoot_actor_last_sil))
-				{
-					m_sSndShotCurrent = "sndSilencerShotLastActor";
-				}
-				else
-				{
-					m_sSndShotCurrent = "sndSilencerShotLast";
-				}
+				m_sSndShotCurrent = "sndShotLastActor";
 			}
 			else
 			{
-				if (parent_actor && m_eSoundsShotFlags.test(ESoundsShotFlags::ssf_shoot_actor_sil))
-				{
-					m_sSndShotCurrent = "sndSilencerShotActor";
-				}
-				else
-				{
-					m_sSndShotCurrent = m_layered_sounds.FindSoundItem("sndSilencerShot", false) ? "sndSilencerShot" : "sndShot";
-				}
+				m_sSndShotCurrent = "sndShotLast";
 			}
 		}
 		else
 		{
-			if (get_elapsed == 1 && m_eSoundsShotFlags.test(ESoundsShotFlags::ssf_shoot_last))
+			if (parent_actor && m_eSoundsFlags.test(ESoundsFlags::sf_shoot_actor))
 			{
-				if (parent_actor && m_eSoundsShotFlags.test(ESoundsShotFlags::ssf_shoot_actor_last))
-				{
-					m_sSndShotCurrent = "sndShotLastActor";
-				}
-				else
-				{
-					m_sSndShotCurrent = "sndShotLast";
-				}
+				m_sSndShotCurrent = "sndShotActor";
 			}
 			else
 			{
-				if (parent_actor && m_eSoundsShotFlags.test(ESoundsShotFlags::ssf_shoot_actor))
-				{
-					m_sSndShotCurrent = "sndShotActor";
-				}
-				else
-				{
-					m_sSndShotCurrent = "sndShot";
-				}
+				m_sSndShotCurrent = "sndShot";
 			}
 		}
 	}
 
-	m_layered_sounds.PlaySound(m_sSndShotCurrent.c_str(), get_LastFP(), H_Parent(), GetHUDmode(), false, true);
+	m_layered_sounds.PlaySound(m_sSndShotCurrent.c_str(), get_LastFP(), H_Parent(), !!GetHUDmode(), false, true);
 
 	if (m_eSoundsFlags2.test(ESoundsFlags2::sf_mag_shot))
 	{
@@ -1767,7 +1604,7 @@ void CWeaponMagazined::SelectShotSound()
 	{
 		if (m_eSoundsFlags.test(ESoundsFlags::sf_jam) && IsMisfire())
 		{
-			m_layered_sounds.PlaySound("sndJam", get_LastFP(), H_Parent(), GetHUDmode(), false);
+			m_layered_sounds.PlaySound("sndJam", get_LastFP(), H_Parent(), !!GetHUDmode(), false);
 		}
 		else
 		{
@@ -1806,8 +1643,15 @@ void CWeaponMagazined::OnShot()
 
 	if (pActor != nullptr && m_shot_cams[0].size() > 0)
 	{
+		CAnimatorCamEffector* e = new CAnimatorCamEffector();
+		e->SetType(ECamEffectorType(Random.randI(32000, 32999)));
+		e->SetCyclic(false);
+		e->SetHudAffect(false);
+
 		bool aim = IsZoomed() && m_shot_cams[1].size() > 0;
-		StartCamEffector(m_shot_cams[aim ? 1 : 0], false, 33000, 33999);
+
+		e->Start(*m_shot_cams[aim ? 1 : 0][Random.randI(m_shot_cams[aim ? 1 : 0].size())]);
+		pActor->Cameras().AddCamEffector(e);
 	}
 
 	StartFlameParticle();
@@ -1832,7 +1676,7 @@ void CWeaponMagazined::OnShotJammed()
 {
 	if (m_eSoundsFlags.test(ESoundsFlags::sf_jam))
 	{
-		m_layered_sounds.PlaySound("sndJam", get_LastFP(), H_Parent(), GetHUDmode(), false);
+		m_layered_sounds.PlaySound("sndJam", get_LastFP(), H_Parent(), !!GetHUDmode(), false);
 	}
 
 	PlayAnimShoot();
@@ -1925,7 +1769,6 @@ void CWeaponMagazined::OnAnimationEnd(u8 state)
 				if (IsGrenadeMode())
 				{
 					bWorking = false;
-					SetPending(false);
 					SwitchState(eIdle);
 				}
 				else
@@ -2016,21 +1859,13 @@ void CWeaponMagazined::switch2_Fire	()
 	}
 #endif
 	
-	SetPending(false);
-
 	m_bStopedAfterQueueFired = false;
 	m_bFireSingleShot = true;
 	m_iShotNum = 0;
 
-	if (ParentIsActor() && GetQueueSize() > 1)
-	{
-		SetPending(true);
-	}
-
-	if ((OnClient() || Level().IsDemoPlay()) && !IsWorking())
-	{
+    if ((OnClient() || Level().IsDemoPlay())&& !IsWorking())
 		FireStart();
-	}
+
 }
 
 void CWeaponMagazined::switch2_Empty()
@@ -2129,15 +1964,12 @@ void CWeaponMagazined::PlayReloadSound()
 	}
 
 	s32 elapsed = iAmmoElapsed + iAmmoChamberElapsed;
-	if (m_bUseRevolverScheme)
-	{
-		const shared_str name = shared_str().printf("sndReloadR%d", elapsed);
+	const shared_str name = shared_str().printf("sndReloadR%d", elapsed);
 
-		if (!IsChangeAmmoType() && !IsGrenadeMode() && !IsMisfire() && elapsed > 0 && m_sounds.FindSoundItem(*name, false))
-		{
-			PlaySound(*name, get_LastFP());
-			return;
-		}
+	if (m_bUseRevolverScheme && !IsGrenadeMode() && !IsMisfire() && elapsed > 0 && m_sounds.FindSoundItem(*name, false))
+	{
+		PlaySound(*name, get_LastFP());
+		return;
 	}
 
 	bool empty = m_bAmmoInChamber ? iAmmoChamberElapsed == 0 : iAmmoElapsed == 0;
@@ -2925,6 +2757,8 @@ void CWeaponMagazined::InitAddons()
 			m_lens_zoom_params.factor_max = READ_IF_EXISTS(pSettings, r_float, get_scope_section, "max_lens_factor", 1.0f);
 			m_lens_zoom_params.need_lens_frame = READ_IF_EXISTS(pSettings, r_bool, get_scope_section, "need_lens_frame", false);
 
+			m_lens_zoom_params.factor_min = READ_IF_EXISTS(pSettings, r_float, get_scope_section, "min_lens_factor", 1.0f);
+			m_lens_zoom_params.factor_max = READ_IF_EXISTS(pSettings, r_float, get_scope_section, "max_lens_factor", 1.0f);
 			m_lens_zoom_params.speed = READ_IF_EXISTS(pSettings, r_float, get_scope_section, "lens_speed", 0.0f);
 			m_lens_zoom_params.gyro_period = READ_IF_EXISTS(pSettings, r_float, get_scope_section, "lens_gyro_sound_period", 0.0f);
 
@@ -3259,21 +3093,6 @@ void CWeaponMagazined::PlayAnimReload()
 		if (IsMisfire() && (HudAnimationExist("anm_reload_misfire") || HudAnimationExist("anm_reload_jammed")))
 		{
 			bMisfireReload = true;
-
-			if (m_bJamNotShot)
-			{
-				u8 type = !m_chamber.empty() ? m_chamber.back().m_LocalAmmoType : !m_magazine.empty() ? m_magazine.back().m_LocalAmmoType : m_ammoType;
-
-				if (TAmmoBones* AmmoBones = GetComponent<TAmmoBones>())
-				{
-					AmmoBones->UpdateAmmoBones(this, iAmmoElapsed, type);
-				}
-
-				if (TMagAmmoBones* MagAmmoBones = GetComponent<TMagAmmoBones>())
-				{
-					MagAmmoBones->UpdateMagAmmoBones(this, type);
-				}
-			}
 		}
 
 		CActor* actor = Level().CurrentControlEntity()->cast_actor();
@@ -3569,11 +3388,6 @@ void CWeaponMagazined::ChangeFireMode(u16 cmd)
 		return;
 	}
 
-	if (DisableEmptyFiremode && iAmmoElapsed + iAmmoChamberElapsed == 0)
-	{
-		return;
-	}
-
 	if (IsZoomed() && m_eAnimationsFlags.test(EAnimationsFlags::af_firemode) && m_bDisableFireModeAim)
 	{
 		return;
@@ -3828,7 +3642,7 @@ bool CWeaponMagazined::install_upgrade_impl(const char* section, bool test)
 	result2 = process_if_exists_set(section, "snd_shoot_actor", str, test);
 	if (result2 && !test)
 	{
-		m_eSoundsShotFlags.set(ESoundsShotFlags::ssf_shoot_actor, true);
+		m_eSoundsFlags.set(ESoundsFlags::sf_shoot_actor, true);
 		m_layered_sounds.LoadSound(section, "snd_shoot_actor", "sndShotActor", false, m_eSoundShot, st_Shooting);
 	}
 	result |= result2;
@@ -3836,7 +3650,7 @@ bool CWeaponMagazined::install_upgrade_impl(const char* section, bool test)
 	result2 = process_if_exists_set(section, "snd_shot_last", str, test);
 	if (result2 && !test)
 	{
-		m_eSoundsShotFlags.set(ESoundsShotFlags::ssf_shoot_last, true);
+		m_eSoundsFlags.set(ESoundsFlags::sf_shoot_last, true);
 		m_layered_sounds.LoadSound(section, "snd_shot_last", "sndShotLast", false, m_eSoundShot, st_Shooting);
 	}
 	result |= result2;
@@ -3844,7 +3658,7 @@ bool CWeaponMagazined::install_upgrade_impl(const char* section, bool test)
 	result2 = process_if_exists_set(section, "snd_shot_last_actor", str, test);
 	if (result2 && !test)
 	{
-		m_eSoundsShotFlags.set(ESoundsShotFlags::ssf_shoot_actor_last, true);
+		m_eSoundsFlags.set(ESoundsFlags::sf_shoot_actor_last, true);
 		m_layered_sounds.LoadSound(section, "snd_shot_last_actor", "sndShotLastActor", false, m_eSoundShot, st_Shooting);
 	}
 	result |= result2;
@@ -3862,10 +3676,10 @@ bool CWeaponMagazined::install_upgrade_impl(const char* section, bool test)
 		const char* sil_ps = nullptr;
 		result |= process_if_exists_set(section, "silencer_flame_particles", sil_ps, test);
 		if(sil_ps)
-			m_sFlameSilencerParticles = sil_ps;
+			LoadParticle(section, sil_ps, m_pFlameSilencerParticles);
 		result |= process_if_exists_set(section, "silencer_smoke_particles", sil_ps, test);
 		if (sil_ps)
-			m_sSmokeSilencerParticles = sil_ps;
+			LoadParticle(section, sil_ps, m_pSmokeSilencerParticles);
 
 		result2 = process_if_exists_set(section, "snd_silncer_shot", str, test);
 		if (result2 && !test)
@@ -3877,7 +3691,7 @@ bool CWeaponMagazined::install_upgrade_impl(const char* section, bool test)
 		result2 = process_if_exists_set(section, "snd_silncer_shot_actor", str, test);
 		if (result2 && !test)
 		{
-			m_eSoundsShotFlags.set(ESoundsShotFlags::ssf_shoot_actor_sil, true);
+			m_eSoundsFlags.set(ESoundsFlags::sf_shoot_actor_sil, true);
 			m_layered_sounds.LoadSound(section, "snd_silncer_shot_actor", "sndSilencerShotActor", false, m_eSoundShot, st_Shooting);
 		}
 		result |= result2;
@@ -3885,7 +3699,7 @@ bool CWeaponMagazined::install_upgrade_impl(const char* section, bool test)
 		result2 = process_if_exists_set(section, "snd_silencer_shot_last", str, test);
 		if (result2 && !test)
 		{
-			m_eSoundsShotFlags.set(ESoundsShotFlags::ssf_shoot_last_sil, true);
+			m_eSoundsFlags.set(ESoundsFlags::sf_shoot_last_sil, true);
 			m_layered_sounds.LoadSound(section, "snd_silencer_shot_last", "sndSilencerShotLast", false, m_eSoundShot);
 		}
 		result |= result2;
@@ -3893,7 +3707,7 @@ bool CWeaponMagazined::install_upgrade_impl(const char* section, bool test)
 		result2 = process_if_exists_set(section, "snd_silencer_shot_last_actor", str, test);
 		if (result2 && !test)
 		{
-			m_eSoundsShotFlags.set(ESoundsShotFlags::ssf_shoot_actor_last_sil, true);
+			m_eSoundsFlags.set(ESoundsFlags::sf_shoot_actor_last_sil, true);
 			m_layered_sounds.LoadSound(section, "snd_silencer_shot_last_actor", "sndSilencerShotLastActor", false, m_eSoundShot);
 		}
 		result |= result2;

@@ -387,7 +387,7 @@ public:
             }
 
             poly_count = temp_count;
-			memcpy(polygon, temp, poly_count * sizeof(Tvector));
+            CopyMemory(polygon, temp, poly_count * sizeof(Tvector));
         }
 
         if (poly_count >= 3)

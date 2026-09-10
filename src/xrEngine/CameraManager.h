@@ -31,9 +31,9 @@ struct ENGINE_API SPPInfo {
 			return *this;
 		}
 	};
-	float		blur = 0, gray = 0;
+	float		blur, gray;
 	struct SDuality { 
-		float h = 0, v = 0; 
+		float h, v; 
 		SDuality() = default;
 		SDuality				(float _h, float _v):h(_h),v(_v){}
 		IC SDuality& set		(float _h, float _v)			{
@@ -52,9 +52,9 @@ struct ENGINE_API SPPInfo {
 		}
 	} noise;
 
-	SColor color_base = {};
-	SColor color_gray = {};
-	SColor color_add = {};
+	SColor				color_base;
+	SColor				color_gray;
+	SColor				color_add;
 	float				cm_influence;
 	float				cm_interpolate;
 	shared_str			cm_tex1;
@@ -136,7 +136,5 @@ public:
 ENGINE_API extern SPPInfo					pp_identity;
 ENGINE_API extern SPPInfo					pp_zero;
 
-ENGINE_API extern float psCamInert;
-ENGINE_API extern float psCamFovInert;
-ENGINE_API extern float psCamFarInert;
-ENGINE_API extern float psCamAspectInert;
+ENGINE_API extern float						psCamInert;
+ENGINE_API extern float						psCamSlideInert;

@@ -14,7 +14,9 @@
 #include "alife_human_brain.h"
 #include "alife_monster_brain.h"
 
-#ifndef XRSE_FACTORY_EXPORTS
+#ifdef XRSE_FACTORY_EXPORTS
+
+#else
 #	include "FreeMP/ScriptEvents.h"
 #	include "PHSimpleCalls.h"
 #	include "eatable_item.h"
@@ -28,12 +30,12 @@
 #	include	"ActorCondition.h"
 #	include "ScriptsSubsystems/Condlist/script_xr_logic.h"
 #	include "ScriptsSubsystems/StoryID/StoryIDManager.h"
-#	include "ScriptsSubsystems/Compability/EnhancementEditionLuaLayer.h"
-#	include "ScriptsSubsystems/Crypto/Crypto_script.h"
+#	include "EnhancementEditionLuaLayer.h"
 #	include "InteractiveObject.h"
 #	include "antigas_filter.h"
 #	include "PowerCell.h"
 #	include "nvg.h"
+#	include "Crypto_script.h"
 #endif
 
 extern void CompatibilityBringeExport(lua_State*);

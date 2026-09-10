@@ -41,21 +41,16 @@ void CHudItem::Load(const char* section)
 	else // if it doesn't, then crash if line is missing from config
 		m_animation_slot		= pSettings->r_u32			(section,"animation_slot");
 
+	m_nearwall_dist_min = READ_IF_EXISTS(pSettings, r_float, section, "nearwall_dist_min", .2f);
+	m_nearwall_dist_max = READ_IF_EXISTS(pSettings, r_float, section, "nearwall_dist_max", 1.f);
+	m_nearwall_target_hud_fov = READ_IF_EXISTS(pSettings, r_float, section, "nearwall_target_hud_fov", 0.27f);
+	m_nearwall_speed_mod = READ_IF_EXISTS(pSettings, r_float, section, "nearwall_speed_mod", 10.f);
+
 	m_fHudFov = READ_IF_EXISTS(pSettings, r_float, hud_sect, "hud_fov", 0.0f);
 	m_fHudFovFactor = READ_IF_EXISTS(pSettings, r_float, hud_sect, "hud_fov_factor", 1.0f);
 
 	m_fLookOutSpeedKoef = READ_IF_EXISTS(pSettings, r_float, hud_sect, "lookout_speed_koef", 1.0f);
 	m_fLookOutAmplK = READ_IF_EXISTS(pSettings, r_float, hud_sect, "lookout_ampl_k", 1.0f);
-
-	BaseYPRParams.m_fHudYawInertiaK = READ_IF_EXISTS(pSettings, r_float, hud_sect, "hud_yaw_inertia_k", 0.0f);
-	BaseYPRParams.m_fHudPitchInertiaK = READ_IF_EXISTS(pSettings, r_float, hud_sect, "hud_pitch_inertia_k", 0.0f);
-	BaseYPRParams.m_fHudRollInertiaK = READ_IF_EXISTS(pSettings, r_float, hud_sect, "hud_roll_inertia_k", 0.0f);
-	BaseYPRParams.m_fHudInertiaSpeed = READ_IF_EXISTS(pSettings, r_float, hud_sect, "hud_inertia_speed", 10.0f);
-
-	ZoomYPRParams.m_fHudYawInertiaK = READ_IF_EXISTS(pSettings, r_float, hud_sect, "hud_zoom_yaw_inertia_k", 0.0f);
-	ZoomYPRParams.m_fHudPitchInertiaK = READ_IF_EXISTS(pSettings, r_float, hud_sect, "hud_zoom_pitch_inertia_k", 0.0f);
-	ZoomYPRParams.m_fHudRollInertiaK = READ_IF_EXISTS(pSettings, r_float, hud_sect, "hud_zoom_roll_inertia_k", 0.0f);
-	ZoomYPRParams.m_fHudInertiaSpeed = READ_IF_EXISTS(pSettings, r_float, hud_sect, "hud_zoom_inertia_speed", 10.0f);
 
 	m_fActorCamSpeedFactor = READ_IF_EXISTS(pSettings, r_float, section, "actor_camera_speed_factor", 1.0f);
 
@@ -160,7 +155,7 @@ void CHudItem::LoadSounds(const char* section)
 
 void CHudItem::PlaySound(const char* alias, const Fvector& position, bool allowOverlap)
 {
-	m_sounds.PlaySound(alias, position, object().H_Root(), GetHUDSoundMode(), false, allowOverlap, m_started_rnd_anim_idx);
+	m_sounds.PlaySound(alias, position, object().H_Root(), !!GetHUDSoundMode(), false, allowOverlap, m_started_rnd_anim_idx);
 }
 
 void CHudItem::renderable_Render()
@@ -168,14 +163,17 @@ void CHudItem::renderable_Render()
 	UpdateXForm					();
 	bool _hud_render			= ::Render->get_HUD() && GetHUDSoundMode();
 	
-	if (!_hud_render || IsHidden())
+	if(_hud_render && !IsHidden())
+	{
+	}
+	else 
 	{
 		if (!object().H_Parent() || (!_hud_render && !IsHidden()))
 		{
 			on_renderable_Render		();
 			debug_draw_firedeps			();
-		}
-		else if (m_object&&object().H_Parent())
+		}else
+		if (m_object&&object().H_Parent())
 		{
 			if ((m_object->H_Parent()->cast_inventory_owner() && 
 				m_object->H_Parent()->cast_inventory_owner()->attached(m_object->cast_inventory_item())) 
@@ -409,36 +407,7 @@ void CHudItem::SendHiddenItem()
 
 void CHudItem::UpdateHudAdditonal(Fmatrix& trans)
 {
-	CActor* pActor = Level().CurrentControlEntity() != nullptr ? Level().CurrentControlEntity()->cast_actor() : nullptr;
-	if (pActor == nullptr)
-		return;
-
-	const float dt = Device.fTimeDelta;
-
-	const float fYawTarget = -pActor->fFPCamYawMagnitude * lerp(BaseYPRParams.m_fHudYawInertiaK, ZoomYPRParams.m_fHudYawInertiaK, GetAimFactor());
-	const float fPitchTarget = -pActor->fFPCamPitchMagnitude * lerp(BaseYPRParams.m_fHudPitchInertiaK, ZoomYPRParams.m_fHudPitchInertiaK, GetAimFactor());
-	const float fRollTarget = -pActor->fFPCamYawMagnitude * lerp(BaseYPRParams.m_fHudRollInertiaK, ZoomYPRParams.m_fHudRollInertiaK, GetAimFactor());
-
-	const float fLerp = 1.0f - exp(-dt * lerp(BaseYPRParams.m_fHudInertiaSpeed, ZoomYPRParams.m_fHudInertiaSpeed, GetAimFactor()));
-	m_fHudYawInertia += (fYawTarget - m_fHudYawInertia) * fLerp;
-	m_fHudPitchInertia += (fPitchTarget - m_fHudPitchInertia) * fLerp;
-	m_fHudRollInertia += (fRollTarget - m_fHudRollInertia) * fLerp;
-
-	Fmatrix hud_inertia;
-	hud_inertia.identity();
-	hud_inertia.rotateY(m_fHudYawInertia);
-
-	Fmatrix hud_inertia_p;
-	hud_inertia_p.identity();
-	hud_inertia_p.rotateX(m_fHudPitchInertia);
-	hud_inertia.mulA_43(hud_inertia_p);
-
-	Fmatrix hud_inertia_r;
-	hud_inertia_r.identity();
-	hud_inertia_r.rotateZ(m_fHudRollInertia);
-	hud_inertia.mulA_43(hud_inertia_r);
-
-	trans.mulB_43(hud_inertia);
+	//TODO: Implement new yaw & pitch inertion
 }
 
 void CHudItem::UpdateCL()
@@ -622,7 +591,7 @@ u32 CHudItem::PlayHUDMotion(const shared_str& M, EHudMixType bMixIn, u8 state, b
 	snd.printf("snd_%s", *M);
 	if (m_object->H_Parent() != nullptr && pSettings->line_exist(HudSection(), snd))
 	{
-		m_sounds.LoadSound(*HudSection(), *snd, "sndByMotion", false);
+		m_sounds.LoadSound(*HudSection(), *snd.printf("snd_%s", *M), "sndByMotion", false);
 		PlaySound("sndByMotion", m_object->Position());
 	}
 
@@ -946,7 +915,31 @@ attachable_hud_item* CHudItem::HudItemData()
 
 float CHudItem::GetHudFov()
 {
-	return (m_fHudFov ? m_fHudFov : psHUD_FOV_def) * m_fHudFovFactor;
+	if (Level().CurrentViewEntity() == object().H_Parent())
+	{
+		float dist = HUD().GetCurrentRayQuery().range;
+
+		clamp(dist, m_nearwall_dist_min, m_nearwall_dist_max);
+		float fDistanceMod = ((dist - m_nearwall_dist_min) / (m_nearwall_dist_max - m_nearwall_dist_min));
+
+		float fBaseFov = m_fHudFov ? m_fHudFov : psHUD_FOV_def;
+		clamp(fBaseFov, 5.f, 180.f);
+		const static bool isCollision = EngineExternal()[EEngineExternalGame::EnableWeaponCollision];
+		if (isCollision)
+		{
+			float src = m_nearwall_speed_mod * Device.fTimeDelta;
+			clamp(src, 0.f, 1.f);
+
+			float fTrgFov = m_nearwall_target_hud_fov + fDistanceMod * (fBaseFov - m_nearwall_target_hud_fov);
+			m_nearwall_last_hud_fov = m_nearwall_last_hud_fov * (1.f - src) + fTrgFov * src;
+		}
+		else
+		{
+			m_nearwall_last_hud_fov = fBaseFov;
+		}
+	}
+
+	return m_nearwall_last_hud_fov * m_fHudFovFactor;
 }
 
 void CHudItem::PlaySoundIfExist(const char* alias, const Fvector& position, bool allowOverlap)
@@ -954,7 +947,7 @@ void CHudItem::PlaySoundIfExist(const char* alias, const Fvector& position, bool
 	HUD_SOUND_ITEM* SndIter = m_sounds.FindSoundItem(alias, false);
 	if (SndIter != nullptr)
 	{
-		m_sounds.PlaySound(SndIter, position, object().H_Root(), GetHUDSoundMode(), false, allowOverlap, u8(-1));
+		m_sounds.PlaySound(SndIter, position, object().H_Root(), !!GetHUDSoundMode(), false, allowOverlap, u8(-1));
 	}
 }
 
@@ -981,7 +974,7 @@ void CHudItem::SetMultipleBonesStatus(const char* section, const char* line, boo
 		return;
 	}
 
-	if (pSettings->line_exist(section, line))
+	if (!!pSettings->line_exist(section, line))
 	{
 		const char*	S = pSettings->r_string(section, line);
 		if (S && S[0])
@@ -1062,11 +1055,6 @@ void CHudItem::OnMotionMark(u8 state, const motion_marks& mark)
 				dev->TurnDetectorInternal(true);
 			}
 		}
-	}
-
-	if (mark.name == "mm_unpend")
-	{
-		SetPending(false);
 	}
 }
 

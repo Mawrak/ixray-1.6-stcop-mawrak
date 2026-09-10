@@ -275,19 +275,25 @@ public:
 		sf_reload_jam_det = (1 << 10),
 		sf_reload_jam_last = (1 << 11),
 		sf_reload_jam_last_det = (1 << 12),
-		sf_draw = (1 << 13),
-		sf_holster = (1 << 14),
-		sf_throw_begin = (1 << 15),
-		sf_throw = (1 << 16),
-		sf_kick = (1 << 17),
-		sf_grenade_change = (1 << 18),
-		sf_switch_g = (1 << 19),
-		sf_reload_change = (1 << 20),
-		sf_tacticaltorch = (1 << 21),
-		sf_laser = (1 << 22),
-		sf_breechblock = (1 << 23),
-		sf_jam = (1 << 24),
-		sf_throw_cancel = (1ull << 25),
+		sf_shoot_actor = (1 << 13),
+		sf_shoot_actor_last = (1 << 14),
+		sf_shoot_last = (1 << 15),
+		sf_shoot_actor_sil = (1 << 16),
+		sf_shoot_last_sil = (1 << 17),
+		sf_shoot_actor_last_sil = (1 << 18),
+		sf_draw = (1 << 19),
+		sf_holster = (1 << 20),
+		sf_throw_begin = (1 << 21),
+		sf_throw = (1 << 22),
+		sf_kick = (1 << 23),
+		sf_grenade_change = (1 << 24),
+		sf_shoot_grenade_actor = (1 << 25),
+		sf_switch_g = (1 << 26),
+		sf_reload_change = (1 << 27),
+		sf_tacticaltorch = (1 << 28),
+		sf_laser = (1 << 29),
+		sf_breechblock = (1 << 30),
+		sf_jam = (1u << 31),
 	};
 
 	enum ESoundsFlags2 : u64
@@ -359,23 +365,16 @@ protected:
 	HUD_SOUND_COLLECTION		m_sounds;
 	HUD_SOUND_COLLECTION_LAYERED m_layered_sounds;
 	InertionData				m_current_inertion;
+	float						m_nearwall_dist_max;
+	float						m_nearwall_dist_min;
+	float						m_nearwall_last_hud_fov = psHUD_FOV_def;
+	float						m_nearwall_target_hud_fov;
+	float						m_nearwall_speed_mod;
 	float						m_fHudFov;
 	float						m_fHudFovFactor;
 	float						m_fLookOutSpeedKoef = 1.0f;
 	float						m_fLookOutAmplK = 1.0f;
 	float						m_fActorCamSpeedFactor = 1.0f;
-
-	struct SHudYPRParams
-	{
-		float m_fHudYawInertiaK = 0.0f;
-		float m_fHudPitchInertiaK = 0.0f;
-		float m_fHudRollInertiaK = 0.0f;
-		float m_fHudInertiaSpeed = 10.0f;
-	} BaseYPRParams, ZoomYPRParams;
-
-	float						m_fHudYawInertia = 0.0f;
-	float						m_fHudPitchInertia = 0.0f;
-	float						m_fHudRollInertia = 0.0f;
 
 	bool						m_bDisableBore;
 	bool						m_bSwitchSprint = false;
@@ -416,8 +415,6 @@ public:
 	virtual CPhysicsShellHolder* cast_physics_shell_holder() { return nullptr; }
 	virtual CPhysicItem* cast_physics_item() { return nullptr; }
 	virtual CWeaponShotgun* cast_weapon_shotgun() { return nullptr; }
-
-	virtual float GetAimFactor() const { return 0.0f; }
 
 protected:
 	DECLARE_SCRIPT_REGISTER_FUNCTION

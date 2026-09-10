@@ -126,9 +126,6 @@ extern bool g_artefacts_on_hud;
 
 u32 particles_workers_count = 1;
 
-extern bool g_autosaves_enabled;
-extern int g_autosaves_interval;
-
 void register_mp_console_commands();
 //-----------------------------------------------------------
 
@@ -2929,9 +2926,6 @@ void CCC_RegisterCommands()
 	CMD4(CCC_Integer, "g_sleep_time", &psActorSleepTime, 1, 24);
 	
 	CMD2(CCC_Boolean, "g_artefacts_on_hud", &g_artefacts_on_hud);
-
-	CMD2(CCC_Boolean, "g_autosaves_enabled", &g_autosaves_enabled);
-	CMD4(CCC_Integer, "g_autosaves_interval", &g_autosaves_interval, 1, 120);
 
 #ifndef MASTER_GOLD
 	extern float g_bullet_time_factor;

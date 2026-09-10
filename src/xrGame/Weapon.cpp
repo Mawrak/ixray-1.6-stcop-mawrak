@@ -35,7 +35,7 @@
 #include "Weapons/Components/WeaponAmmoBones.h"
 #include "WeaponAmmo.h"
 #include "ui/UIGameCustom.h"
-#include "../xrEngine/xr_input.h"
+
 #include <algorithm>
 
 #define WEAPON_REMOVE_TIME		60000
@@ -57,6 +57,11 @@ CWeapon::~CWeapon()
 {
 	xr_delete(m_UIScope);
 	delete_data(m_scopes);
+}
+
+void CWeapon::Hit					(SHit* pHDS)
+{
+	inherited::Hit(pHDS);
 }
 
 void CWeapon::UpdateXForm	()
@@ -85,7 +90,7 @@ void CWeapon::UpdateXForm	()
 	} 
 
 	const CInventoryOwner* parent = go->cast_inventory_owner(); //smart_cast<const CInventoryOwner*>(go);
-	if (!parent || parent->use_simplified_visual())
+	if (!parent || (parent && parent->use_simplified_visual()))
 		return;
 
 	if (!m_can_be_strapped_rifle) {
@@ -500,6 +505,33 @@ void CWeapon::Load		(const char* section)
 	m_bAimActions = READ_IF_EXISTS(pSettings, r_bool, section, "enable_aim_actions", false);
 
 	{
+		string_path	ce_path = {};
+		shared_str tmp = READ_IF_EXISTS(pSettings, r_string, hud_sect, "cam_safemode_in", "camera_effects\\actor_move\\safemode_in.anm");
+		if (FS.exist(ce_path, "$game_anims$", *tmp))
+		{
+			m_safemode_cams[0] = tmp;
+		}
+
+		tmp = READ_IF_EXISTS(pSettings, r_string, hud_sect, "cam_safemode_out", "camera_effects\\actor_move\\safemode_out.anm");
+		if (FS.exist(ce_path, "$game_anims$", *tmp))
+		{
+			m_safemode_cams[1] = tmp;
+		}
+
+		tmp = READ_IF_EXISTS(pSettings, r_string, hud_sect, "cam_aim_in", "camera_effects\\actor_move\\aim_in.anm");
+		if (FS.exist(ce_path, "$game_anims$", *tmp))
+		{
+			m_aim_cams[0] = tmp;
+		}
+
+		tmp = READ_IF_EXISTS(pSettings, r_string, hud_sect, "cam_aim_out", "camera_effects\\actor_move\\aim_out.anm");
+		if (FS.exist(ce_path, "$game_anims$", *tmp))
+		{
+			m_aim_cams[1] = tmp;
+		}
+	}
+	
+	{
 		auto LoadMoreCameras = [&](RStringVec& vector, const char* param_name, const char* base_camera_name)
 		{
 			string_path	ce_path = {};
@@ -523,11 +555,6 @@ void CWeapon::Load		(const char* section)
 
 		LoadMoreCameras(m_shot_cams[0], "cam_shoot", "camera_effects\\weapon\\base_shoot.anm");
 		LoadMoreCameras(m_shot_cams[1], "cam_aim_shoot", "camera_effects\\weapon\\base_aim_shoot.anm");
-
-		LoadMoreCameras(m_safemode_cams[0], "cam_safemode_in", "camera_effects\\actor_move\\safemode_in.anm");
-		LoadMoreCameras(m_safemode_cams[1], "cam_safemode_out", "camera_effects\\actor_move\\safemode_out.anm");
-		LoadMoreCameras(m_aim_cams[0], "cam_aim_in", "camera_effects\\actor_move\\aim_in.anm");
-		LoadMoreCameras(m_aim_cams[1], "cam_aim_out", "camera_effects\\actor_move\\aim_out.anm");
 	}
 
 	m_zoom_params.m_bUseDynamicZoom	= READ_IF_EXISTS(pSettings,r_bool,section,"scope_dynamic_zoom",false);
@@ -632,8 +659,6 @@ void CWeapon::Load		(const char* section)
 	LoadVector(m_bDefHideBones, "def_hide_bones");
 	LoadVector(m_bDefShowBones, "def_show_bones");
 	LoadVector(m_bDefHideBonesGLAttached, "def_hide_bones_override_when_gl_attached");
-	LoadVector(m_bDefHideBonesSilencerAttached, "def_hide_bones_override_when_silencer_attached");
-	LoadVector(m_bDefHideBonesScopeAttached, "def_hide_bones_override_when_scope_attached");
 	LoadVector(m_bScopeShowBones, "no_scope_overriding_show_bones");
 	LoadVector(m_bScopeHideBones, "no_scope_overriding_hide_bones");
 	LoadVector(m_sCollimatorSightsBones, "collimator_sights_bones");
@@ -650,6 +675,9 @@ void CWeapon::Load		(const char* section)
 
 	m_bGaussScheme = !!READ_IF_EXISTS(pSettings, r_bool, section, "use_gauss_scheme", false);
 
+	m_bullet_point_offset_hud = READ_IF_EXISTS(pSettings, r_float, section, "bullet_point_offset_hud", -1.0f);
+	m_bullet_point_offset_world = READ_IF_EXISTS(pSettings, r_float, section, "bullet_point_offset_world", -0.3f);
+
 	m_bAmmoInChamber = READ_IF_EXISTS(pSettings, r_bool, section, "ammo_in_chamber", false);
 	
 	m_bRestGlSil = READ_IF_EXISTS(pSettings, r_bool, section, "restricted_gl_and_sil", false);
@@ -658,10 +686,6 @@ void CWeapon::Load		(const char* section)
 
 	m_bBlockReload = READ_IF_EXISTS(pSettings, r_bool, section, "block_reload", false);
 	m_bBlockFiremodeinGLM = READ_IF_EXISTS(pSettings, r_bool, section, "block_firemode_glm", false);
-
-	DisableLastAmmoMisfire = READ_IF_EXISTS(pSettings, r_bool, section, "disable_last_ammo_misfire", false);
-	DisableEmptyFiremode = READ_IF_EXISTS(pSettings, r_bool, section, "disable_empty_firemode", false);
-	DisableGrenadeChange = READ_IF_EXISTS(pSettings, r_bool, section, "disable_grenade_change", false);
 
 	m_fMisfireAfterProblemsLevel = READ_IF_EXISTS(pSettings, r_float, section, "misfire_after_problems_level", 10.0f);
 
@@ -743,7 +767,7 @@ void CWeapon::Load		(const char* section)
 	m_mags_capacity.clear();
 	for (int i = 0; i < m_ammoTypes.size(); i++)
 	{
-		shared_str capacity_value;
+		static shared_str capacity_value;
 		capacity_value.printf("ammo_mag_size_for_type_%d", i);
 		if (pSettings->line_exist(section, *capacity_value))
 		{
@@ -761,7 +785,7 @@ void CWeapon::Load		(const char* section)
 	}
 	else for (int i = 0; i < m_ammoTypes.size(); i++)
 	{
-		shared_str params_section;
+		static shared_str params_section;
 		params_section.printf("ammo_params_section_%d", i);
 		if (pSettings->line_exist(ReachInAllSections(*params_section), *params_section))
 		{
@@ -1255,7 +1279,6 @@ void CWeapon::OnH_B_Independent	(bool just_before_destroy)
 	m_strapped_mode_rifle = false;
 	m_zoom_params.m_bIsZoomModeNow	= false;
 	bDisablePrepareAnimation = false;
-	m_set_next_ammoType_on_reload = undefined_ammo_type;
 	UpdateXForm					();
 
 	if (THudLightLaser* LaserLight = GetComponent<THudLightLaser>())
@@ -1302,7 +1325,6 @@ void CWeapon::OnActiveItem ()
 
 	bStopReloadSignal = false;
 	bDisablePrepareAnimation = false;
-	m_set_next_ammoType_on_reload = undefined_ammo_type;
 
 	inherited::OnActiveItem		();
 	//если мы занружаемся и оружие было в руках
@@ -1369,7 +1391,7 @@ void CWeapon::UpdateCL		()
 	u32 delta = Device.GetTimeDeltaSafe(_last_update_time);
 
 	bool need_update_hud = false;
-	bool isHudItemData = GetHUDmode() && HudItemData() != nullptr;
+	bool isHudItemData = !!GetHUDmode() && HudItemData() != nullptr;
 	
 	if (isHudItemData && !bUpdateHUDBonesVisibility)
 	{
@@ -1881,7 +1903,12 @@ bool CWeapon::Action(u16 cmd, u32 flags)
 
 						if (m_safemode_cams[0].size() > 0 && m_safemode_cams[1].size() > 0)
 						{
-							StartCamEffector(m_safemode_cams[cur_status ? 1 : 0]);
+							CAnimatorCamEffector* e = new CAnimatorCamEffector();
+							e->SetType(ECamEffectorType(Random.randI(32000, 32999)));
+							e->SetCyclic(false);
+							e->SetHudAffect(true);
+							e->Start(*m_safemode_cams[cur_status ? 1 : 0]);
+							pActor->Cameras().AddCamEffector(e);
 						}
 
 						pActor->SetSafemodeStatus(!cur_status);
@@ -2028,11 +2055,6 @@ bool CWeapon::SwitchZoom(u32 flags)
 bool CWeapon::SwitchAmmoType(u32 flags)
 {
 	if (OnClient() || !(flags & CMD_START))
-	{
-		return false;
-	}
-
-	if (DisableGrenadeChange && (IsGrenadeMode() || cast_weapon_rg6() && !m_bTriStateReload) && iAmmoElapsed > 0)
 	{
 		return false;
 	}
@@ -2473,11 +2495,6 @@ bool CWeapon::CheckForMisfire()
 		return false;
 	}
 
-	if (DisableLastAmmoMisfire && iAmmoElapsed + iAmmoChamberElapsed == 1)
-	{
-		return false;
-	}
-
 	float rnd = ::Random.randF(0.f, 1.f);
 	float mp = GetConditionMisfireProbability();
 
@@ -2684,25 +2701,9 @@ void CWeapon::UpdateHUDAddonsVisibility()
 		}
 	}
 
-	if (IsSilencerAttached())
-	{
-		for (auto& bone : m_bDefHideBonesSilencerAttached)
-		{
-			HudItemData()->set_bone_visible(bone, false, true);
-		}
-	}
-
 	if (IsScopeAttached())
 	{
 		for (auto& bone : m_bHideBonesScopeAttached)
-		{
-			HudItemData()->set_bone_visible(bone, false, true);
-		}
-	}
-
-	if (IsScopeAttached())
-	{
-		for (auto& bone : m_bDefHideBonesScopeAttached)
 		{
 			HudItemData()->set_bone_visible(bone, false, true);
 		}
@@ -2814,25 +2815,9 @@ void CWeapon::UpdateAddonsVisibility()
 		}
 	}
 
-	if (IsSilencerAttached())
-	{
-		for (auto& bone : m_bDefHideBonesSilencerAttached)
-		{
-			ChangeBoneVisible(bone, false, false);
-		}
-	}
-
 	if (IsScopeAttached())
 	{
 		for (auto& bone : m_bHideBonesScopeAttached)
-		{
-			ChangeBoneVisible(bone, false, false);
-		}
-	}
-
-	if (IsScopeAttached())
-	{
-		for (auto& bone : m_bDefHideBonesScopeAttached)
 		{
 			ChangeBoneVisible(bone, false, false);
 		}
@@ -3174,21 +3159,6 @@ void GetZoomData(const float scope_factor, float& delta, float& min_zoom_factor)
 
 float LastZoomFactor = 0.f;
 
-void CWeapon::StartCamEffector(const RStringVec& cams, bool hud_affect, int type_min, int type_max)
-{
-	CActor* pActor = H_Parent() != nullptr ? H_Parent()->cast_actor() : nullptr;
-	if (pActor == nullptr || cams.empty())
-		return;
-
-	const shared_str& cam = cams[Random.randI(cams.size())];
-	CAnimatorCamEffector* e = new CAnimatorCamEffector();
-	e->SetType(ECamEffectorType(Random.randI(type_min, type_max)));
-	e->SetCyclic(false);
-	e->SetHudAffect(hud_affect);
-	e->Start(*cam);
-	pActor->Cameras().AddCamEffector(e);
-}
-
 void CWeapon::OnZoomIn()
 {
 	m_zoom_params.m_bIsZoomModeNow		= true;
@@ -3211,7 +3181,12 @@ void CWeapon::OnZoomIn()
 
 		if (pActor != nullptr && m_aim_cams[0].size() > 0 && m_aim_cams[1].size() > 0)
 		{
-			StartCamEffector(m_aim_cams[0]);
+			CAnimatorCamEffector* e = new CAnimatorCamEffector();
+			e->SetType(ECamEffectorType(Random.randI(32000, 32999)));
+			e->SetCyclic(false);
+			e->SetHudAffect(true);
+			e->Start(*m_aim_cams[0]);
+			pActor->Cameras().AddCamEffector(e);
 		}
 	}
 
@@ -3271,23 +3246,17 @@ void CWeapon::OnZoomOut()
 
 		if (pActor != nullptr && m_aim_cams[0].size() > 0 && m_aim_cams[1].size() > 0)
 		{
-			StartCamEffector(m_aim_cams[1]);
+			CAnimatorCamEffector* e = new CAnimatorCamEffector();
+			e->SetType(ECamEffectorType(Random.randI(32000, 32999)));
+			e->SetCyclic(false);
+			e->SetHudAffect(true);
+			e->Start(*m_aim_cams[1]);
+			pActor->Cameras().AddCamEffector(e);
 		}
 	}
 
 	if (pActor != nullptr)
 	{
-		if (pInput->GetControllerMode())
-		{
-			if (!(pActor->mstate_wishful & mcLLookout))
-			{
-				pActor->mstate_wishful &= mcLLookout;
-			}
-			if (!(pActor->mstate_wishful & mcRLookout))
-			{
-				pActor->mstate_wishful &= mcRLookout;
-			}
-		}
 		if (CCustomDevice* pDevice = pActor->GetDevice())
 		{
 			pDevice->SwitchZoom();
@@ -3575,8 +3544,6 @@ EHudOffsetType CWeapon::GetCurrentHudOffsetIdx() const
 
 void CWeapon::UpdateHudAdditonal(Fmatrix& trans)
 {
-	CHudItem::UpdateHudAdditonal(trans);
-
 	CActor* pActor = H_Parent() != nullptr ? H_Parent()->cast_actor() : nullptr;
 	if (pActor == nullptr)
 	{
@@ -3866,7 +3833,7 @@ extern bool hud_adj_crosshair;
 bool CWeapon::show_crosshair()
 {
 	const u8 NextState = GetNextState();
-	return hud_adj_crosshair || !m_bTacticalLaserStatus && (!IsPending() || NextState == eFire && !cast_weapon_knife() || NextState == eEmptyClick || NextState == eSprintStart || NextState == eSprintEnd || NextState == ePump || NextState == eSafemodeSwitch) && NextState != eHidden && (!IsZoomed() || !ZoomHideCrosshair());
+	return hud_adj_crosshair || !m_bTacticalLaserStatus && (!IsPending() || NextState == eEmptyClick || NextState == eSprintStart || NextState == eSprintEnd || NextState == ePump || NextState == eSafemodeSwitch) && NextState != eHidden && (!IsZoomed() || !ZoomHideCrosshair());
 }
 
 bool CWeapon::use_crosshair() const
@@ -4020,13 +3987,14 @@ bool CWeapon::MovingAnimAllowedNow()
 
 bool CWeapon::IsHudModeNow()
 {
-	return GetHUDmode() && HudItemData() && !HudItemData()->m_model_combined;
+	return !!GetHUDmode() && HudItemData() && !HudItemData()->m_model_combined;
 }
 
 void CWeapon::ZoomInc()
 {
 	float dt = m_lens_zoom_params.delta;
 	float oldpos = m_lens_zoom_params.target_position;
+	bool force_zoom_sound = false;
 
 	m_lens_zoom_params.target_position += dt;
 
@@ -4061,6 +4029,7 @@ void CWeapon::ZoomDec()
 {
 	float dt = m_lens_zoom_params.delta;
 	float oldpos = m_lens_zoom_params.target_position;
+	bool force_zoom_sound = false;
 
 	m_lens_zoom_params.target_position -= dt;
 
@@ -4765,6 +4734,11 @@ void CWeapon::OnMotionMark(u8 state, const motion_marks& mark)
 	{
 		MakeWeaponKick(Device.vCameraPosition, Device.vCameraDirection);
 	}
+
+	if (mark.name == "mm_unpend")
+	{
+		SetPending(false);
+	}
 }
 
 bool CWeapon::ScopeFit(CScope* pIItem) const
@@ -5227,7 +5201,12 @@ void CWeapon::OnSafemodeOut()
 
 		if (m_safemode_cams[0].size() > 0 && m_safemode_cams[1].size() > 0)
 		{
-			StartCamEffector(m_safemode_cams[1]);
+			CAnimatorCamEffector* e = new CAnimatorCamEffector();
+			e->SetType(ECamEffectorType(Random.randI(32000, 32999)));
+			e->SetCyclic(false);
+			e->SetHudAffect(true);
+			e->Start(*m_safemode_cams[1]);
+			pActor->Cameras().AddCamEffector(e);
 		}
 	}
 }

@@ -20,7 +20,6 @@
 #include "../../xrCore/git_version.h"
 #include "../../xrEngine/IGame_Actor.h"
 #include "../xrRender/RenderInterfaceShared.h"
-#include "../xrRender/dxUIRender.h"
 using namespace R_dsgraph;
 
 CRender RImplementation;
@@ -409,34 +408,12 @@ void CRender::Calculate				()
 					if (R)		R->update			(O);
 				}
 			}
-
-			const bool use_full_detail_distance = ps_r1_full_detail_distance_scale < 1.f;
-			const float full_detail_distance = use_full_detail_distance ? std::max(100.f, g_pGamePersistent->Environment().CurrentEnv->far_plane * ps_r1_full_detail_distance_scale) : 0.f;
-		
 			for (u32 o_it=0; o_it<lstRenderables.size(); o_it++)
 			{
-				ISpatial* spatial = lstRenderables[o_it].get();
-				if (0 == spatial)
-				{
-					continue;
-				}
-
-				if (use_full_detail_distance &&
-					Device.vCameraPosition.distance_to_sqr(spatial->sphere.P) > _sqr(full_detail_distance + spatial->sphere.R))
-				{
-					light* L = (spatial->type & ESPATIAL_TYPE::LIGHTSOURCE) != ESPATIAL_TYPE::NONE ? (light*)spatial->dcast_Light() : nullptr;
-					if (!L || !L->flags.bHudMode)
-					{
-						continue;
-					}
-				}
-
-				spatial->spatial_updatesector();
-				CSector* sector = (CSector*)spatial->sector;
-				if (0 == sector)
-				{
-					continue;
-				}
+				ISpatial*	spatial		= lstRenderables[o_it].get();		spatial->spatial_updatesector	();
+				CSector*	sector		= (CSector*)spatial->sector	;
+				if	(0==sector)										
+					continue;	// disassociated from S/P structure
 
 				// Filter only not light spatial
 				if (PortalTraverser.i_marker != sector->r_marker && ((spatial->type & ESPATIAL_TYPE::RENDERABLE) != ESPATIAL_TYPE::NONE || (spatial->type & ESPATIAL_TYPE::PARTICLE) != ESPATIAL_TYPE::NONE))	continue;	// inactive (untouched) sector
@@ -514,20 +491,15 @@ void CRender::Calculate				()
 
 void CRender::RenderUI(bool) 
 {
-	CHK_DX(RDevice->Clear(0L, nullptr, D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, 0x0, 1.0f, 0L));
-
-	Target->u_setrt((u32)RCache.get_target_width(), (u32)RCache.get_target_height(), nullptr, nullptr, RTarget, RDepth);
-	rmNormal();
-
+	//CHK_DX(RDevice->Clear(0L, nullptr, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, 0x0, 1.0f, 0L));
+	//rmNormal();
+//	Target->u_setrt((u32)RCache.get_target_width(), (u32)RCache.get_target_height(), Target->rt_Position->pRT, RTarget, NULL, RDepth);
 	r_dsgraph_render_ui();
 
-	Target->u_setrt(RCache.get_width(), RCache.get_height(), RTarget, nullptr, nullptr, RDepth);
-	rmNormal();
-
+//	Target->u_setrt((u32)RCache.get_target_width(), (u32)RCache.get_target_height(), RTarget, 0, 0, RDepth);
 	r_dsgraph_render_sorted_ui();
 
 	marker++;
-	Target->u_setrt(RCache.get_width(), RCache.get_height(), RTarget, nullptr, nullptr, nullptr);
 }
 
 void CRender::Render()

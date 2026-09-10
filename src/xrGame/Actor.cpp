@@ -697,24 +697,6 @@ void CActor::Load	(const char* section )
 		}
 	}
 
-	if (pGameGlobals->line_exist("quick_throws", "quick_grenade_animator"))
-	{
-		const char* quick_grenade_animator = pGameGlobals->r_string("quick_throws", "quick_grenade_animator");
-		if (pSettings->section_exist(quick_grenade_animator))
-		{
-			m_sQuickGrenadeAnimator = quick_grenade_animator;
-		}
-	}
-
-	if (pGameGlobals->line_exist("quick_throws", "quick_bolt_animator"))
-	{
-		const char* quick_bolt_animator = pGameGlobals->r_string("quick_throws", "quick_bolt_animator");
-		if (pSettings->section_exist(quick_bolt_animator))
-		{
-			m_sQuickBoltAnimator = quick_bolt_animator;
-		}
-	}
-
 	if (pGameGlobals->line_exist("mutant_kicks", "burer_kick_animator"))
 	{
 		const char* burer_kick_animator = pGameGlobals->r_string("mutant_kicks", "burer_kick_animator");
@@ -2301,11 +2283,8 @@ void CActor::UpdatePlayerView()
 			mstate_wishful &= ~mcAccel;
 			mstate_wishful &= ~mcLStrafe;
 			mstate_wishful &= ~mcRStrafe;
-			if (!pInput->GetControllerMode())
-			{
-				mstate_wishful &= ~mcLLookout;
-				mstate_wishful &= ~mcRLookout;
-			}
+			mstate_wishful &= ~mcLLookout;
+			mstate_wishful &= ~mcRLookout;
 			mstate_wishful &= ~mcFwd;
 			mstate_wishful &= ~mcBack;
 			if (!psActorFlags.test(AF_CROUCH_TOGGLE) && !pInput->GetControllerMode())
@@ -2608,17 +2587,21 @@ void CActor::shedule_Update	(u32 DT)
 
 	//что актер видит перед собой
 	collide::rq_result& RQ				= HUD().GetCurrentRayQuery();
+	
+	Fvector ActorPos, PickPos = { 0.0f, 0.0f, 0.0f };
+	//Center(ActorPos);
+	ActorPos = Position();
+	ActorPos.y += ACTOR_HEIGHT * 0.5f;
 
+	PickPos.mad(Device.vCameraPosition, Device.vCameraDirection, RQ.range);
+	if (RQ.O)
+	{
+		//PickPos = RQ.O->Position();
+		RQ.O->Center(PickPos);
+	}
 	const static bool isMonstersInventory = EngineExternal()[EEngineExternalGame::EnableMonstersInventory];
 
-	IKinematics* V = Visual()->dcast_PKinematics();
-	Fmatrix bone_transform;
-	bone_transform = V->LL_GetTransform(V->LL_BoneID("bip01_head"));
-
-	Fmatrix global_transform;
-	global_transform.mul_43(XFORM(), bone_transform);
-
-	if (!input_external_handler_installed() && RQ.O && RQ.O->getVisible() && RQ.range < (2.0f + Device.vCameraPosition.distance_to(global_transform.c)) && 
+	if (!input_external_handler_installed() && RQ.O && RQ.O->getVisible() && ActorPos.distance_to_sqr(PickPos) < 60.0f && 
 		!(HudAnimator() && HudAnimator()->PdaAnimator() && HudAnimator()->PdaAnimator()->IsActive()))
 	{
 		m_pObjectWeLookingAt = RQ.O->cast_game_object();

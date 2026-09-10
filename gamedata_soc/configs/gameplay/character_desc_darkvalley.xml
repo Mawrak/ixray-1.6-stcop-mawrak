@@ -512,6 +512,7 @@
 
 		<start_dialog>hello_dialog</start_dialog>
 		
+		<actor_dialog>esc_stalker_talk_level</actor_dialog>
 		<actor_dialog>bar_dolg_base_guard_acces</actor_dialog>	
 #include "gameplay\character_dialogs.xml"		
 	</specific_character>
@@ -547,6 +548,7 @@
 
 		<start_dialog>hello_dialog</start_dialog>
 		
+		<actor_dialog>esc_stalker_talk_level</actor_dialog>
 		<actor_dialog>bar_dolg_base_guard_acces</actor_dialog>
 #include "gameplay\character_dialogs.xml"		
 	</specific_character>
@@ -582,6 +584,7 @@
 
 		<start_dialog>hello_dialog</start_dialog>
 		
+		<actor_dialog>esc_stalker_talk_level</actor_dialog>
 		<actor_dialog>bar_dolg_base_guard_acces</actor_dialog>	
 #include "gameplay\character_dialogs.xml"		
 	</specific_character>
@@ -612,6 +615,7 @@
 
 		<start_dialog>hello_dialog</start_dialog>
 		
+		<actor_dialog>esc_stalker_talk_level</actor_dialog>
 		<actor_dialog>bar_dolg_base_guard_acces</actor_dialog>	
 #include "gameplay\character_dialogs.xml"		
 	</specific_character>
@@ -647,6 +651,7 @@
 
 		<start_dialog>hello_dialog</start_dialog>
 		
+		<actor_dialog>esc_stalker_talk_level</actor_dialog>
 		<actor_dialog>bar_dolg_base_guard_acces</actor_dialog>	
 #include "gameplay\character_dialogs.xml"		
 	</specific_character>
@@ -677,6 +682,7 @@
 
 		<start_dialog>hello_dialog</start_dialog>
 		
+		<actor_dialog>esc_stalker_talk_level</actor_dialog>
 		<actor_dialog>bar_dolg_base_guard_acces</actor_dialog>	
 #include "gameplay\character_dialogs.xml"		
 	</specific_character>
@@ -937,7 +943,7 @@
 		<reputation>1</reputation>
 
 		<visual>actors\soldier\soldier_spetsnaz</visual>
-		<snd_config>characters_voice\human_02\military\</snd_config>
+		<snd_config>characters_voice\human_03\military\</snd_config>
 		<crouch_type>0</crouch_type>
 		<supplies>
 			[spawn] \n
@@ -967,7 +973,7 @@
 		<reputation>-2</reputation>
 
 		<visual>actors\soldier\soldier_spetsnaz</visual>
-		<snd_config>characters_voice\human_02\military\</snd_config>
+		<snd_config>characters_voice\human_03\military\</snd_config>
 		<crouch_type>0</crouch_type>
 		<supplies>
 			[spawn] \n

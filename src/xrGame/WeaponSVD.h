@@ -1,12 +1,12 @@
 #pragma once
 
-#include "WeaponMagazined.h"
+#include "WeaponCustomPistol.h"
 #include "../xrScripts/script_export_space.h"
 
 class CWeaponSVD final : 
-	public CWeaponMagazined
+	public CWeaponCustomPistol
 {
-	using inherited = CWeaponMagazined;
+	using inherited = CWeaponCustomPistol;
 
 protected:
 	virtual void switch2_Fire();

@@ -58,12 +58,3 @@ u16	CBolt::Initiator()
 {
 	return m_thrower_id;
 }
-
-void CBolt::FastThrow()
-{
-	m_constpower = true;
-	m_throw = false;
-
-	setup_throw_params(true);
-	Throw();
-}

@@ -78,20 +78,20 @@ struct CRemoveByTimePredicate {
 	}
 };
 
-CDangerManager::~CDangerManager()
+CDangerManager::~CDangerManager		()
 {
 }
 
-void CDangerManager::Load(const char* section)
+void CDangerManager::Load			(const char* section)
 {
 }
 
-void CDangerManager::reinit()
+void CDangerManager::reinit			()
 {
-	m_objects.clear();
-	m_ignored.clear();
-	m_time_line = 0;
-	m_selected_index = -1;
+	m_objects.clear			();
+	m_ignored.clear			();
+	m_time_line				= 0;
+	m_selected				= 0;
 }
 
 void CDangerManager::reload(const char* section)
@@ -114,38 +114,33 @@ void CDangerManager::update()
 	);
 
 	float result = flt_max;
-	m_selected_index = -1;
-	for (size_t i = 0; i < m_objects.size(); ++i)
+	m_selected = 0;
+	OBJECTS::const_iterator	I = m_objects.begin();
+	OBJECTS::const_iterator	E = m_objects.end();
+	for ( ; I != E; ++I) 
 	{
-		float				value = do_evaluate(m_objects[i]);
+		float				value = do_evaluate(*I);
 		if (result > value) {
 			result			= value;
-			m_selected_index = (ptrdiff_t)i;
+			m_selected		= &*I;
 		}
 	}
 }
 
 void CDangerManager::remove(const CDangerObject& object)
 {
-	const CDangerObject* selected_obj = selected();
-	if (selected_obj && selected_obj == &object)
-	{
-		m_selected_index = -1;
-	}
-
+	if (m_selected && m_selected == &object)
+		m_selected = 0;
 	m_objects.erase(std::remove_if(m_objects.begin(), m_objects.end(), CFindPredicate(object)), m_objects.end());
 	update();
 }
 
-void CDangerManager::remove_links(const CObject* object)
+void CDangerManager::remove_links	(const CObject *object)
 {
-	const CDangerObject* selected_obj = selected();
-	if (selected_obj && (selected_obj->object() == object))
-	{
-		m_selected_index = -1;
-	}
+	if (m_selected && (m_selected->object() == object))
+		m_selected			= 0;
 
-	m_objects.erase(
+	m_objects.erase			(
 		std::remove_if(
 			m_objects.begin(),
 			m_objects.end(),
@@ -155,29 +150,22 @@ void CDangerManager::remove_links(const CObject* object)
 	);
 
 	{
-		OBJECTS::iterator I = m_objects.begin();
-		OBJECTS::iterator E = m_objects.end();
-		for (; I != E; ++I)
-		{
+		OBJECTS::iterator	I = m_objects.begin();
+		OBJECTS::iterator	E = m_objects.end();
+		for ( ; I != E; ++I) {
 			if (!(*I).dependent_object())
-			{
 				continue;
-			}
 
 			if ((*I).dependent_object() != object)
-			{
 				continue;
-			}
 
 			(*I).clear_dependent_object();
 		}
 	}
 
-	IGNORED::iterator I = std::find(m_ignored.begin(), m_ignored.end(), object->ID());
+	IGNORED::iterator		I = std::find(m_ignored.begin(),m_ignored.end(),object->ID());
 	if (I != m_ignored.end())
-	{
-		m_ignored.erase(I);
-	}
+		m_ignored.erase		(I);
 }
 
 bool CDangerManager::useful			(const CDangerObject &object) const

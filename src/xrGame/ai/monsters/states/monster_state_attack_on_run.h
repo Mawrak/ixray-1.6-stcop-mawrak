@@ -3,6 +3,8 @@
 
 #include "../state.h"
 
+#include "../../weighted_random.h"
+
 inline
 TTime   current_time () { return Device.dwTimeGlobal; }
 

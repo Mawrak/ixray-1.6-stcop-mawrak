@@ -3,6 +3,7 @@
 #include "../../Weapon.h"
 #include "../../WeaponMagazined.h"
 #include "../../WeaponMagazinedWGrenade.h"
+#include "../../WeaponCustomPistol.h"
 #include "../../WeaponPistol.h"
 
 using namespace luabind;
@@ -19,6 +20,12 @@ void CWeapon::script_register(lua_State* L)
 	module(L)
 	[
 		class_<CWeaponMagazinedWGrenade, CGameObject>("CWeaponMagazinedWGrenade")
+			.def(constructor<>())
+	];
+
+	module(L)
+	[
+		class_<CWeaponCustomPistol, CGameObject>("CWeaponCustomPistol")
 			.def(constructor<>())
 	];
 
@@ -41,13 +48,16 @@ void CWeapon::script_register(lua_State* L)
 	MakeAliasLambda("CWeaponVal");
 	MakeAliasLambda("CWeaponLR300");
 	MakeAliasLambda("CWeaponFN2000");
-	MakeAliasLambda("CWeaponCustomPistol");
-	MakeAliasLambda("CWeaponSVU");
 
 	weapon_class = luabind::get_globals(L)["CWeaponMagazinedWGrenade"];
 
 	MakeAliasLambda("CWeaponAK74");
 	MakeAliasLambda("CWeaponGroza");
+
+	weapon_class = luabind::get_globals(L)["CWeaponCustomPistol"];
+
+	MakeAliasLambda("CWeaponSVU");
+	//MakeAliasLambda("CWeaponSVD");
 
 	weapon_class = luabind::get_globals(L)["CWeaponPistol"];
 

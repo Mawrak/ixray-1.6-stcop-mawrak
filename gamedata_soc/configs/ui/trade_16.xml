@@ -1,10 +1,5 @@
 <?xml version='1.0' encoding="UTF-8"?>
 <window x="0" y="0" w="640" h="480" r="227" g="121" b="222" texture="1">
-	<item_colors>
-		<default r="255" g="255" b="255"/>
-		<slot r="180" g="255" b="180"/>
-		<unavaliable r="255" g="100" b="100"/>
-	</item_colors>
 
 	<static_icon x="111" y="32" width="150" height="220"  stretch="1">
 		<texture>ui_charinfo_left</texture>
@@ -66,7 +61,7 @@
 	</our_money_static>
 
 	<dragdrop_list x="18" y="35" width="248" height="410"
-			cell_width = "29" cell_height="39" rows_num="10" cols_num="8" 
+			cell_width = "31" cell_height="41" rows_num="10" cols_num="8" 
 			unlimited="1" group_similar="1" condition_progress_bar="1"/>
 
 
@@ -80,7 +75,7 @@
 	</other_money_static>
 
 	<dragdrop_list x="18" y="35" width="248" height="410"
-			cell_width="29" cell_height="39" rows_num="10" cols_num="8" 
+			cell_width="31" cell_height="41" rows_num="10" cols_num="8" 
 			unlimited="1" group_similar="1" condition_progress_bar="1"/>
 
 	<static x="370" y="260" width="280" height="212" stretch="1">
