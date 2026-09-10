@@ -814,7 +814,6 @@ void CDemoRecord::IR_OnKeyboardPress(int dik)
 			fLifeTime = -1;
 			break;
 
-#ifndef MASTER_GOLD
 		case K_FORCE_TRANSFORM:
 			if (g_pGameLevel->CurrentEntity())
 			{
@@ -822,7 +821,6 @@ void CDemoRecord::IR_OnKeyboardPress(int dik)
 				fLifeTime = -1;
 			}
 			break;
-#endif
 	}
 
 	if (redirect_input_to_level)
