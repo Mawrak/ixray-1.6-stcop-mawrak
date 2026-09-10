@@ -2526,7 +2526,6 @@ void CCC_RegisterCommands()
 
 	CMD1(CCC_ChangeLanguage, "language");
 
-#ifdef DEBUG_DRAW
 	CMD1(CCC_SetActorPosition, "set_actor_position");
 	CMD1(CCC_SetWeather, "set_weather");
 	CMD1(CCC_SetGameTime, "set_game_time");
@@ -2539,12 +2538,16 @@ void CCC_RegisterCommands()
 	CMD1(CCC_SetCharComm, "g_character_community");
 	CMD1(CCC_SetMonstComm, "g_monster_community");
 
+	CMD3(CCC_Mask32, "g_unlimited_fire", &psActorFlags, AF_INFINITE_FIRE);
+	CMD3(CCC_Mask32, "g_unlimited_durability", &psActorFlags, AF_INFINITE_DURABILITY);
+	
+#ifdef DEBUG_DRAW
+
 	CMD1(CCC_Particle_TEST, "g_ps_test");
 
 	CMD3(CCC_Mask32, "dbg_draw_lchangers", &dbg_net_Draw_Flags, dbg_draw_lchangers);
 
-	CMD3(CCC_Mask32, "g_unlimited_fire", &psActorFlags, AF_INFINITE_FIRE);
-	CMD3(CCC_Mask32, "g_unlimited_durability", &psActorFlags, AF_INFINITE_DURABILITY);
+	
 
 	CMD1(CCC_ChZLoggerTest, "chZLoggerTest");
 	CMD1(CCC_ConsoleColors, "get_console_colors");
@@ -2721,7 +2724,7 @@ void CCC_RegisterCommands()
 	CMD2(CCC_Boolean, "g_no_amb_effects", &no_amb_effects);
 #endif // DEBUG
 
-#ifndef MASTER_GOLD
+
 	CMD1(CCC_JumpToLevel, "jump_to_level");
 	CMD3(CCC_Mask32, "g_god", &psActorFlags, AF_GOD_MODE);
 	CMD3(CCC_Mask32, "g_unlimited_ammo", &psActorFlags, AF_UNLIMITED_AMMO);
@@ -2732,7 +2735,7 @@ void CCC_RegisterCommands()
 	CMD4(CCC_Float, "hud_adj_delta_pos", &_delta_pos, 0.0001f, 1.0f);
 	CMD4(CCC_Float, "hud_adj_delta_rot", &_delta_rot, 0.0001f, 1.0f);
 
-#endif // MASTER_GOLD
+
 
 	CMD1(CCC_ReloadSystemLtx, "reload_system_ltx");
 	CMD3(CCC_Mask32, "g_autopickup", &psActorFlags, AF_AUTO_PICKUP);
