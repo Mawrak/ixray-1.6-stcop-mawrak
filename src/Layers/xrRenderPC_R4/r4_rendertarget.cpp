@@ -553,7 +553,7 @@ CRenderTarget::CRenderTarget()
 	rt_ui_depth.create(r2_RT_ui_depth, get_target_width() * 2.0f, get_target_height() * 2.0f, ERHI_FORMAT::D16_UNORM);
 	rt_ui_color.create(r2_RT_ui_color, get_target_width() * 2.0f, get_target_height() * 2.0f, ERHI_FORMAT::R10G10B10A2_UNORM);
 
-	init_fsr();
+	//init_fsr();
 	init_dlss();
 	init_xess();
 
@@ -1126,7 +1126,7 @@ CRenderTarget::~CRenderTarget	()
 	xr_delete(b_new_adaptation);
 	xr_delete(b_sslr);
 
-	g_Fsr3Wrapper.Destroy();
+	//g_Fsr3Wrapper.Destroy();
 #if 0
 	g_XESSWrapper.Destroy();
 #endif
