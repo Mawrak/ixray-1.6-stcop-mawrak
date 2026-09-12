@@ -56,7 +56,7 @@ void CUIInventoryWnd::InitInventory()
 	{
 		if (CUIOutfitDragDropList* outfitSlot = smart_cast<CUIOutfitDragDropList*>(m_pInvList[OUTFIT_SLOT]))
 		{
-			outfitSlot->SetOutfit(m_pInvList[OUTFIT_SLOT]->ItemsCount() != 0 ? m_pInvList[OUTFIT_SLOT]->GetItemIdx(0) : nullptr);
+			outfitSlot->SetOutfit();
 		}
 	}
 
