@@ -560,7 +560,7 @@ public:
 		if (!xr_strlen(S)) {
 
 			++m_iQuickSave;
-			xr_sprintf(S, "%s - %s [%i]", Core.UserName, g_pStringTable->translate("quicksave").c_str(), m_iQuickSave);
+			xr_sprintf(S, "%s [%i]", g_pStringTable->translate("quicksave").c_str(), m_iQuickSave);
 			if (m_iQuickSave >= m_iQuickSavesCount)
 			{
 				m_iQuickSave = 0;
