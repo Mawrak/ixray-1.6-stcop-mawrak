@@ -19,59 +19,78 @@ using namespace DirectX;
 
 bool ScreenshotManager::SaveScreenshot(IRender_interface::ScreenshotMode Mode, const char* Name, CMemoryWriter* MemoryWriter)
 {
-	if (!GRHI || !GRHI->DevicePtr)
-	{
-		return false;
-	}
+    if (!GRHI || !GRHI->DevicePtr)
+        return false;
 
-	IRHIRenderTargetView* Rtv = GRHI->GetRenderTargetView(0);
-	if (Rtv == nullptr)
-	{
-		Rtv = RTarget;
+    IRHIRenderTargetView* Rtv = GRHI->GetRenderTargetView(0);
+    if (Rtv == nullptr)
+    {
+        Rtv = RTarget;
+        if (Rtv == nullptr)
+            return false;
+    }
 
-		if (Rtv == nullptr)
-		{
-			return false;
-		}
-	}
+    ScratchImage Img;
+    HRESULT Hr = E_FAIL;
 
-	u32 Width = 0;
-	u32 Height = 0;
-	u32 RowPitch = 0;
+#ifdef IXR_WINDOWS
+    // === QUICK HACK (DX11 / R4) ===
+    // CaptureTexture performs the staging copy, MSAA resolve and format-aware
+    // readback that the manual ReadRenderTargetPixels path was missing.
+    // NOTE: assumes RHI exposes the underlying ID3D11Resource via GetTexture().
+    ID3D11Resource* SrcTex = reinterpret_cast<ID3D11Resource*>(
+        Rtv->GetSurface()->GetTexture());
 
-	// estimate buffer size: will be updated by ReadRenderTargetPixels
-	u32 MaxSize = 4096 * 4096 * 4;
-	xr_unique_ptr<u8[]> Buffer(new u8[MaxSize]);
+    Hr = CaptureTexture(
+        GRHI->DevicePtr->GetD3D11Device(),
+        GRHI->DevicePtr->GetD3D11DeviceContext(),
+        SrcTex,
+        Img);
 
-	bool Ok = GRHI->DevicePtr->ReadRenderTargetPixels(Rtv, Buffer.get(), MaxSize, Width, Height, RowPitch);
-	if (!Ok)
-	{
-		return false;
-	}
+    if (FAILED(Hr) || Img.GetImage(0, 0, 0) == nullptr)
+        return false;
 
-	// Create ScratchImage in BGRA8 format and copy rows
-	ScratchImage Img;
-	HRESULT Hr = Img.Initialize2D((DXGI_FORMAT)Rtv->GetSurface()->GetFormat(), Width, Height, 1, 1);
-	if (FAILED(Hr))
-	{
-		return false;
-	}
+    // Normalize HDR / A2B10 / etc. down to 8-bit BGRA so the rest of the
+    // function (Resize / SaveToWIC / SaveToDDS / SaveToTGA) works unchanged.
+    const DXGI_FORMAT SrcFmt = Img.GetImage(0, 0, 0)->format;
+    if (SrcFmt != DXGI_FORMAT_B8G8R8A8_UNORM &&
+        SrcFmt != DXGI_FORMAT_B8G8R8A8_UNORM_SRGB)
+    {
+        ScratchImage Converted;
+        Hr = Convert(Img.GetImage(0, 0, 0),
+                     DXGI_FORMAT_B8G8R8A8_UNORM,
+                     TEX_FILTER_FLAGS::TEX_FILTER_DEFAULT,
+                     0.0f,
+                     Converted);
+        if (FAILED(Hr))
+            return false;
+        Img = std::move(Converted);
+    }
+#else
+    // Existing Linux / non-Windows path (unchanged)
+    u32 Width = 0, Height = 0, RowPitch = 0;
+    u32 MaxSize = 4096 * 4096 * 4;
+    xr_unique_ptr<u8[]> Buffer(new u8[MaxSize]);
 
-	u8* DstPixels = reinterpret_cast<u8*>(Img.GetPixels());
-	u32 DstRow = Width * 4;
+    bool Ok = GRHI->DevicePtr->ReadRenderTargetPixels(Rtv, Buffer.get(), MaxSize, Width, Height, RowPitch);
+    if (!Ok)
+        return false;
 
-	for (u32 Y = 0; Y < Height; ++Y)
-	{
-		memcpy(DstPixels + (size_t)Y * DstRow, Buffer.get() + (size_t)Y * RowPitch, DstRow);
-	}
+    Hr = Img.Initialize2D((DXGI_FORMAT)Rtv->GetSurface()->GetFormat(), Width, Height, 1, 1);
+    if (FAILED(Hr))
+        return false;
 
-#ifdef IXR_LINUX
-	// Convert BGRA to RGBA for stb_image_write
-	for (u32 i = 0; i < Width * Height; ++i)
-	{
-		u8* pixel = DstPixels + i * 4;
-		std::swap(pixel[0], pixel[2]);
-	}
+    u8* DstPixels = reinterpret_cast<u8*>(Img.GetPixels());
+    u32 DstRow = Width * 4;
+    for (u32 Y = 0; Y < Height; ++Y)
+        memcpy(DstPixels + (size_t)Y * DstRow, Buffer.get() + (size_t)Y * RowPitch, DstRow);
+
+    // Convert BGRA to RGBA for stb_image_write
+    for (u32 i = 0; i < Width * Height; ++i)
+    {
+        u8* pixel = DstPixels + i * 4;
+        std::swap(pixel[0], pixel[2]);
+    }
 #endif
 
 	Blob Saved = {};
