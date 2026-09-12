@@ -160,43 +160,4 @@ jobs:
             .xrignore
             fsgame.ltx
           include-hidden-files: true
-  publish-engine:
-    name: 'Publish engine ${{ matrix.variant }}'
-    needs: [pack-assets]
-    strategy:
-      matrix:
-        system: [windows-2022]
-        platform: [x64]
-        preset: [Engine]
-        config: [RelWithDebInfo]
-        variant: [cop, cs, soc, coc]
-    runs-on: ${{ matrix.system }}
   
-    steps:
-      - name: Get engine binaries
-        uses: actions/download-artifact@v8
-        with:
-          name: engine-binaries-${{ matrix.system }}-${{ matrix.platform }}-${{ matrix.config }}-${{ github.sha }}
-          path: build/${{ matrix.platform }}/${{ matrix.preset }}-${{ runner.os }}/bin/${{ matrix.config }}/
-  
-      - name: Get assets (${{ matrix.variant }})
-        uses: actions/download-artifact@v8
-        with:
-          name: engine-assets-${{ matrix.variant }}-${{ github.sha }}
-          path: ./
-  
-      - name: Move binaries to ./bin
-        run: |
-          mkdir ${{ github.workspace }}/bin
-          move ${{ github.workspace }}/build/${{ matrix.platform }}/${{ matrix.preset }}-${{ runner.os }}/bin/${{ matrix.config }}/*.* ${{ github.workspace }}/bin
-  
-      - name: Upload publish artifact (${{ matrix.variant }})
-        uses: actions/upload-artifact@v7
-        with:
-          name: engine-publish-${{ matrix.variant }}-${{ matrix.system }}-${{ matrix.platform }}-${{ github.sha }}
-          path: |
-            bin/
-            gamedata/
-            .xrignore
-            fsgame.ltx
-          include-hidden-files: true
