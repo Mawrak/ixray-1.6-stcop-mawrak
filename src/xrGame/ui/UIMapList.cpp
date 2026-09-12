@@ -77,7 +77,7 @@ void CUIMapList::StartDedicatedServer()
 	xr_strcat           (g_sLaunchOnExit_app, g_sLaunchWorkingFolder);
 	xr_strcat			(g_sLaunchOnExit_app, "xrServer.exe\"");
 
-	xr_strcat			(g_sLaunchOnExit_params, " -i -fsltx fsgame.ltx -ltx -nosound -");
+	xr_strcat			(g_sLaunchOnExit_params, " -i -fsltx fsgame_soc.ltx -ltx -nosound -");
 	xr_strcat			(g_sLaunchOnExit_params, GetCommandLine(""));
 
 	Msg					("Going to quit before starting dedicated server");

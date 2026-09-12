@@ -18,7 +18,7 @@ constexpr u32 BIG_FILE_READER_WINDOW_SIZE = 1024*1024;
 
 CLocatorAPI* xr_FS = nullptr;
 
-#define FSLTX "fsgame.ltx"
+#define FSLTX "fsgame_soc.ltx"
 
 void CLocatorAPI::ParseIgnoreList()
 {
