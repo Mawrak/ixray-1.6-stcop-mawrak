@@ -128,6 +128,51 @@ void CRenderTarget::phase_combine()
 
 		CEnvDescriptorMixer& envdesc = *g_pGamePersistent->Environment().CurrentEnv;
 		dxEnvDescriptorMixerRender &envdescren = *(dxEnvDescriptorMixerRender*)(&*envdesc.m_pDescriptorMixer);
+        
+        const float minamb = 0.001f;
+
+        Fvector4 ambclr = {
+            std::max(envdesc.ambient.x * 2, minamb),
+            std::max(envdesc.ambient.y * 2, minamb),
+            std::max(envdesc.ambient.z * 2, minamb),
+            0
+        };
+        ambclr.mul(ps_r2_sun_lumscale_amb);
+
+        Fvector4 envclr;
+        if (envdesc.old_style)
+        {
+            envclr = {
+                envdesc.sky_color.x * 2 + EPS,
+                envdesc.sky_color.y * 2 + EPS,
+                envdesc.sky_color.z * 2 + EPS,
+                envdesc.weight
+            };
+        }
+        else
+        {
+            envclr = {
+                envdesc.hemi_color.x * 2 + EPS,
+                envdesc.hemi_color.y * 2 + EPS,
+                envdesc.hemi_color.z * 2 + EPS,
+                envdesc.weight
+            };
+        }
+
+        envclr.x *= 2 * ps_r2_sun_lumscale_hemi;
+        envclr.y *= 2 * ps_r2_sun_lumscale_hemi;
+        envclr.z *= 2 * ps_r2_sun_lumscale_hemi;
+
+        envclr.x *= ps_r2_sun_lumscale_amb;
+        envclr.y *= ps_r2_sun_lumscale_amb;
+        envclr.z *= ps_r2_sun_lumscale_amb;
+
+        Fvector4 fogclr = {
+            envdesc.fog_color.x,
+            envdesc.fog_color.y,
+            envdesc.fog_color.z,
+            0
+        };
 
 		// Setup textures
 		IRHISurface* e0 = _menu_pp ? 0 : envdescren.sky_r_textures_env[0].second->surface_get();
