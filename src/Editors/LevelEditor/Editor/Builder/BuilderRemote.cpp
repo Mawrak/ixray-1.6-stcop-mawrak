@@ -2,7 +2,7 @@
 #include "../Tools/Terrain/ESceneTerrainTools.h"
 // !!! использовать prefix если нужно имя !!! (Связано с группами)
 
-
+  
 #define LEVEL_LODS_TEX_NAME "level_lods"
 #define LEVEL_LODS_NRM_NAME "level_lods_nm"
 #define LEVEL_DI_TEX_NAME "level_stat"
