@@ -11,6 +11,7 @@ CUIOutfitDragDropList::CUIOutfitDragDropList()
 	m_background				= new CUI3dStatic();
 	m_background->SetAutoDelete	(true);
 	AttachChild					(m_background);
+	m_default_outfit			= "npc_icon_without_outfit";
 }
 
 CUIOutfitDragDropList::~CUIOutfitDragDropList()
@@ -36,24 +37,10 @@ void CUIOutfitDragDropList::SetOutfit()
 	{
 		m_background->SetVisual(nullptr);
 	}
-
-	if (m_background->GetVisual())
-	{
-		IKinematicsAnimated* K = m_background->GetVisual()->dcast_PKinematicsAnimated();
-		if (K->ID_Cycle_Safe(m_visual_animation))
-		{
-			K->PlayCycle(m_visual_animation.c_str());
-		}
-		else
-		{
-			Msg("! Unable to find animation [%s] for outfit visual [%s]", m_visual_animation.c_str(), m_background->GetVisual()->getDebugName().c_str());
-		}
-	}
 }
 
-void CUIOutfitDragDropList::SetVisualAnimation(const char* animation)
-{
-	m_visual_animation = animation;
+void CUIOutfitDragDropList::SetDefaultOutfit(const char* default_outfit){
+	m_default_outfit = default_outfit;
 }
 
 void CUIOutfitDragDropList::SetItem(CUICellItem* itm)
