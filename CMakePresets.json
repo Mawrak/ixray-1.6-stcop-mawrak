@@ -21,7 +21,7 @@
                 "IXRAY_USE_R1": "ON",
                 "IXRAY_USE_R2": "ON",
                 "IXRAY_UNITYBUILD": "ON",
-                "IXRAY_PROFILER": "ON"
+                "IXRAY_PROFILER": "OFF"
             }
         },
         {
@@ -53,7 +53,7 @@
                 "IXRAY_USE_R1": "ON",
                 "IXRAY_USE_R2": "ON",
                 "IXRAY_UNITYBUILD": "OFF",
-                "IXRAY_PROFILER": "ON"
+                "IXRAY_PROFILER": "OFF"
             }
         },
         {
@@ -135,7 +135,7 @@
                 "IXRAY_USE_R1": "ON",
                 "IXRAY_USE_R2": "ON",
                 "IXRAY_UNITYBUILD": "ON",
-                "IXRAY_PROFILER": "ON"
+                "IXRAY_PROFILER": "OFF"
             }
         },
         {
@@ -168,7 +168,7 @@
                 "IXRAY_USE_R1": "OFF",
                 "IXRAY_USE_R2": "OFF",
                 "IXRAY_UNITYBUILD": "ON",
-                "IXRAY_PROFILER": "ON"
+                "IXRAY_PROFILER": "OFF"
             }
         },
         {
@@ -201,7 +201,7 @@
                 "IXRAY_USE_R1": "ON",
                 "IXRAY_USE_R2": "OFF",
                 "IXRAY_UNITYBUILD": "ON",
-                "IXRAY_PROFILER": "ON"
+                "IXRAY_PROFILER": "OFF"
             }
         },
         {
