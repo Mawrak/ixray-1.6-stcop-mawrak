@@ -44,6 +44,8 @@ jobs:
           - x64
         config:
           - Release
+          - RelWithDebInfo
+          - Debug
 
     runs-on: ${{ matrix.system }}
 
