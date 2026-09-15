@@ -19,7 +19,7 @@ CUIOutfitDragDropList::~CUIOutfitDragDropList()
 
 #include "../Level.h"
 
-void CUIOutfitDragDropList::SetOutfit(CUICellItem* itm)
+void CUIOutfitDragDropList::SetOutfit()
 {
 	m_background->SetWndPos(Fvector2().set(0, 0));
 	m_background->SetWndSize(Fvector2().set(GetWidth(), GetHeight()));
@@ -59,28 +59,28 @@ void CUIOutfitDragDropList::SetVisualAnimation(const char* animation)
 void CUIOutfitDragDropList::SetItem(CUICellItem* itm)
 {
 	if(itm)	inherited::SetItem			(itm);
-	SetOutfit							(itm);
+	SetOutfit							();
 }
 
 bool CUIOutfitDragDropList::SetItem(CUICellItem* itm, Fvector2 abs_pos)
 {
 	if(itm)	
 		inherited::SetItem			(itm, abs_pos);
-	SetOutfit							(itm);
+	SetOutfit							();
 	return true;
 }
 
 void CUIOutfitDragDropList::SetItem(CUICellItem* itm, Ivector2 cell_pos)
 {
 	if(itm)	inherited::SetItem			(itm, cell_pos);
-	SetOutfit							(itm);
+	SetOutfit							();
 }
 
 CUICellItem* CUIOutfitDragDropList::RemoveItem(CUICellItem* itm, bool force_root)
 {
 	VERIFY								(!force_root);
 	CUICellItem* ci						= inherited::RemoveItem(itm, force_root);
-	SetOutfit							(nullptr);
+	SetOutfit							();
 	return								ci;
 }
 
