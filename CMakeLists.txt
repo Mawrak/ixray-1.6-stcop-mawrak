@@ -15,7 +15,7 @@ option(IXRAY_USE_R1 "Enable DirectX 9 static render" ON)
 option(IXRAY_USE_R2 "Enable DirectX 9 dynamic render" ON)
 option(IXRAY_USE_COMPRESSOR "Enable xrCompresor" ON)
 option(IXRAY_UNITYBUILD "Enable UnityBuild for xrGame" ON)
-option(IXRAY_PROFILER "Enable Optick for perf debug" ON)
+option(IXRAY_PROFILER "Enable Optick for perf debug" OFF)
 option(IXRAY_PROFILER_TRACY "Enable Tracy for perf debug" OFF)
 option(IXRAY_CROSS_COMPILATION "Enable cross-compilation" OFF)
 
