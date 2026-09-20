@@ -205,7 +205,7 @@ void CZombie::fake_death_stand_up()
 	// check if state active
 	bool active = false;
 	for (u32 i=0; i<FAKE_DEATH_TYPES_COUNT; i++) {
-		if (com_man().ta_is_active(anim_triple_death[i])) {
+		if (com_man().ta_is_active(anim_triple_death[i])||com_man().ta_is_active(anim_fast_death[0])) {
 			active = true;
 			break;
 		}
