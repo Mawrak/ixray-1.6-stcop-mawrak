@@ -249,6 +249,7 @@ class_<CScriptGameObject> script_register_game_object1(class_<CScriptGameObject>
 
 		// zombie
 		.def("fake_death_fall_down",		&CScriptGameObject::fake_death_fall_down)
+        .def("fake_death_fall_down_fast",		&CScriptGameObject::fake_death_fall_down_fast)
 		.def("fake_death_stand_up",			&CScriptGameObject::fake_death_stand_up)
 
 		// base monster

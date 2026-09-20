@@ -91,6 +91,7 @@ void CZombie::reload(const char* section)
 	com_man().ta_fill_data(anim_triple_death[1],	"fake_death_1_0",	"fake_death_1_1",	"fake_death_1_2",	true, false);
 	com_man().ta_fill_data(anim_triple_death[2],	"fake_death_2_0",	"fake_death_2_1",	"fake_death_2_2",	true, false);
 	com_man().ta_fill_data(anim_triple_death[3],	"fake_death_3_0",	"fake_death_3_1",	"fake_death_3_2",	true, false);
+    com_man().ta_fill_data(anim_fast_death[0],	"fake_death_0_1",	"fake_death_0_1",	"fake_death_0_1",	true, false);
 }
 
 
@@ -184,6 +185,20 @@ bool CZombie::fake_death_fall_down()
 
 	return true;
 }
+
+
+
+
+bool CZombie::fake_death_fall_down_fast()
+{
+	if (com_man().ta_is_active()) return false;
+
+	com_man().ta_activate		(anim_fast_death[0]);
+	move().stop					();
+
+	return true;
+}
+
 
 void CZombie::fake_death_stand_up()
 {

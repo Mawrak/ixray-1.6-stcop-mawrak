@@ -354,6 +354,17 @@ bool CScriptGameObject::fake_death_fall_down()
 	return false;
 }
 
+bool CScriptGameObject::fake_death_fall_down_fast()
+{
+	if (CZombie* monster = smart_cast<CZombie*>(&object()))
+	{
+		return monster->fake_death_fall_down_fast();
+	}
+
+	ai().script_engine().script_log(ScriptStorage::eLuaMessageTypeError, "CZombie : cannot access class member fake_death_fall_down_fast!");
+	return false;
+}
+
 void CScriptGameObject::fake_death_stand_up()
 {
 	if (CZombie* monster = smart_cast<CZombie*>(&object()))
@@ -362,7 +373,7 @@ void CScriptGameObject::fake_death_stand_up()
 	}
 	else
 	{
-		ai().script_engine().script_log(ScriptStorage::eLuaMessageTypeError, "CZombie : cannot access class member fake_death_fall_down!");
+		ai().script_engine().script_log(ScriptStorage::eLuaMessageTypeError, "CZombie : cannot access class member fake_death_stand_up!");
 	}
 }
 

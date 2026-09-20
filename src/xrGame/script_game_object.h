@@ -273,6 +273,7 @@ public:
 
 	// Zombie
 			bool				fake_death_fall_down	();
+            bool				fake_death_fall_down_fast	();
 			void				fake_death_stand_up		();
 
 	// CBaseMonster

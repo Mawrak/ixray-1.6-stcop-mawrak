@@ -52,6 +52,7 @@ public:
 	u8				fake_death_left;
 
 	bool			fake_death_fall_down	(); //return true if everything is ok
+    bool			fake_death_fall_down_fast	(); //return true if everything is ok
 	void			fake_death_stand_up		();
 
 #ifdef _DEBUG
