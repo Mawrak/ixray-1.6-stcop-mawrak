@@ -16,9 +16,9 @@
 extern bool shared_str_initialized;
 XRCORE_API xrDebug Debug;
 
-#ifndef DEBUG
-#	define USE_OWN_MINI_DUMP
-#endif // DEBUG
+//#ifndef DEBUG
+//#	define USE_OWN_MINI_DUMP
+//#endif // DEBUG
 
 
 static bool	error_after_dialog = false;
