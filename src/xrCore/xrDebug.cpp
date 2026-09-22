@@ -550,7 +550,7 @@ LONG WINAPI UnhandledFilter	(_EXCEPTION_POINTERS *pExceptionInfo)
 			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal error", "Fatal error occured\n\nPress OK to abort program execution", nullptr);
 	}
 
-	ReportFault(pExceptionInfo, 0);
+	//ReportFault(pExceptionInfo, 0);
 
 	if (Debug.get_on_dialog())
 	{
