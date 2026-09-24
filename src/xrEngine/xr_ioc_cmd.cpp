@@ -884,5 +884,11 @@ void CCC_Register()
 	extern bool debug_destroy;
 	CMD2(CCC_Boolean, "debug_destroy", &debug_destroy);
 #endif
+
+
+    CMD4(CCC_Float, "amb",  &ps_env_amb_mult,  0.0f, 10.0f);
+    CMD4(CCC_Float, "hemi", &ps_env_hemi_mult, 0.0f, 10.0f);
+    CMD4(CCC_Float, "sun",  &ps_env_sun_mult,  0.0f, 10.0f);
+
 };
  

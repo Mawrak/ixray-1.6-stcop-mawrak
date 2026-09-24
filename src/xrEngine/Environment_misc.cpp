@@ -720,19 +720,46 @@ void CEnvDescriptorMixer::lerp	(CEnvironment* Env, CEnvDescriptor& A, CEnvDescri
 	m_fWaterIntensity		=	fi*A.m_fWaterIntensity + f*B.m_fWaterIntensity;
 
 	trees_amplitude = fi * A.trees_amplitude + f * B.trees_amplitude;
+    
+    
+    
+    
+    // Apply multipliers to the raw config values before blending
+    Fvector ambA = A.ambient; ambA.mul(ps_env_amb_mult);
+    Fvector ambB = B.ambient; ambB.mul(ps_env_amb_mult);
+    Fvector sunA = A.sun_color; sunA.mul(ps_env_sun_mult);
+    Fvector sunB = B.sun_color; sunB.mul(ps_env_sun_mult);
+    Fvector4 hemiA = A.hemi_color; 
+    hemiA.x *= ps_env_hemi_mult; hemiA.y *= ps_env_hemi_mult; hemiA.z *= ps_env_hemi_mult;
+    Fvector4 hemiB = B.hemi_color;
+    hemiB.x *= ps_env_hemi_mult; hemiB.y *= ps_env_hemi_mult; hemiB.z *= ps_env_hemi_mult;
+    
+    
+    
+    
+    
+    
+    
+    
 
 	// colors
-//.	sky_color.lerp			(A.sky_color,B.sky_color,f).add(Mdf.sky_color).mul(modif_power);
-	sky_color.lerp			(A.sky_color,B.sky_color,f);
+	sky_color.lerp			(A.sky_color,B.sky_color,f);    
 	if(Mdf.use_flags.test(eSkyColor))
 		sky_color.add(Mdf.sky_color).mul(modif_power);
+    
+    
+    
+    
+    
+    
+    
 
-//.	ambient.lerp			(A.ambient,B.ambient,f).add(Mdf.ambient).mul(modif_power);
-	ambient.lerp			(A.ambient,B.ambient,f);
+
+	ambient.lerp			(ambA, ambB,f);
 	if(Mdf.use_flags.test(eAmbientColor))
 		ambient.add(Mdf.ambient).mul(modif_power);
 
-	hemi_color.lerp			(A.hemi_color,B.hemi_color,f);
+	hemi_color.lerp			(hemiA, hemiB,f);
 
 	if (Mdf.use_flags.test(eHemiColor))
 	{
@@ -744,7 +771,7 @@ void CEnvDescriptorMixer::lerp	(CEnvironment* Env, CEnvDescriptor& A, CEnvDescri
 		hemi_color.z *= modif_power;
 	}
 
-	sun_color.lerp(A.sun_color, B.sun_color, f);
+	sun_color.lerp(sunA, sunB, f);
 
 	if (rain_density > 0.f)
 	{
