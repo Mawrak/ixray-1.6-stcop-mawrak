@@ -7,53 +7,44 @@
 
 void CUIActorMenuBase::clear_highlight_lists()
 {
-    for (u8 i = 1; i <= LAST_SLOT; ++i)
-    {
-        if (m_pInvSlotHighlight[i])
-            m_pInvSlotHighlight[i]->Show(false);
-    }
+	for (u8 i = 1; i <= LAST_SLOT; ++i)
+	{
+		if (m_pInvSlotHighlight[i])
+			m_pInvSlotHighlight[i]->Show(false);
+	}
 
-    for (u8 i = 0; i < 4; i++)
-    {
-        if (m_QuickSlotsHighlight[i])
-            m_QuickSlotsHighlight[i]->Show(false);
-    }
-    for (u8 i = 0; i < m_ArtefactSlotsCount; i++)
-    {
-        if (m_ArtefactSlotsHighlight[i])
-            m_ArtefactSlotsHighlight[i]->Show(false);
-    }
+	for (u8 i = 0; i < 4; i++)
+	{
+		if (m_QuickSlotsHighlight[i])
+			m_QuickSlotsHighlight[i]->Show(false);
+	}
+	for (u8 i = 0; i < m_ArtefactSlotsCount; i++)
+	{
+		if (m_ArtefactSlotsHighlight[i])
+			m_ArtefactSlotsHighlight[i]->Show(false);
+	}
+	if (GetActorList())
+		GetActorList()->clear_select_armament();
 
-    if (GetActorList())
-    {
-        GetActorList()->clear_select_armament();
-        highlight_related_config_sections(GetActorList()); // FFx001 ++
-    }
-
-    switch ( m_currMenuMode )
-    {
-    case mmUndefined:
-        break;
-    case mmInventory:
-        break;
-    case mmTrade:
-        GetTradeActorBagList()->clear_select_armament();
-        highlight_related_config_sections(GetTradeActorBagList()); // FFx001 ++
-        GetTradeActorList()->clear_select_armament();
-        highlight_related_config_sections(GetTradeActorList()); // FFx001 ++
-        GetTradePartnerBagList()->clear_select_armament();
-        highlight_related_config_sections(GetTradePartnerBagList()); // FFx001 ++
-        GetTradePartnerList()->clear_select_armament();
-        highlight_related_config_sections(GetTradePartnerList()); // FFx001 ++
-        break;
-    case mmUpgrade:
-        break;
-    case mmDeadBodySearch:
-        GetPartnerList()->clear_select_armament();
-        highlight_related_config_sections(GetPartnerList()); // FFx001 ++
-        break;
-    }
-    m_highlight_clear = true;
+	switch ( m_currMenuMode )
+	{
+	case mmUndefined:
+		break;
+	case mmInventory:
+		break;
+	case mmTrade:
+		GetTradeActorBagList()->clear_select_armament();
+		GetTradeActorList()->clear_select_armament();
+		GetTradePartnerBagList()->clear_select_armament();
+		GetTradePartnerList()->clear_select_armament();
+		break;
+	case mmUpgrade:
+		break;
+	case mmDeadBodySearch:
+		GetPartnerList()->clear_select_armament();
+		break;
+	}
+	m_highlight_clear = true;
 }
 
 void CUIActorMenuBase::set_highlight_item(CUICellItem* cell_item)
@@ -95,14 +86,14 @@ void CUIActorMenuBase::set_highlight_item(CUICellItem* cell_item)
 
 void CUIActorMenuBase::highlight_armament( PIItem item, CUIDragDropListEx* ddlist )
 {
-    ddlist->clear_select_armament();
-    highlight_ammo_for_weapon( item, ddlist );
-    highlight_weapons_for_ammo( item, ddlist );
-    highlight_weapons_for_addon( item, ddlist );
-    highlight_related_config_sections(ddlist); // FFx001 ++
-    highlight_antigas_for_filter(item, ddlist); // FFx001 ++
-    highlight_power_banks_for_power_cell(item, ddlist); // FFx001 ++
-    highlight_power_manager_for_power_cell(item, ddlist); // FFx001 ++
+	ddlist->clear_select_armament();
+	highlight_ammo_for_weapon( item, ddlist );
+	highlight_weapons_for_ammo( item, ddlist );
+	highlight_weapons_for_addon( item, ddlist );
+	highlight_related_config_sections(item, ddlist); // FFx001 ++
+	highlight_antigas_for_filter(item, ddlist); // FFx001 ++
+	highlight_power_banks_for_power_cell(item, ddlist); // FFx001 ++
+	highlight_power_manager_for_power_cell(item, ddlist); // FFx001 ++
 }
 
 // FFx0001 ++
@@ -194,39 +185,35 @@ void CUIActorMenuBase::highlight_antigas_for_filter(PIItem item, CUIDragDropList
 
 // FFx0001 ++
 // Highlight separated by delimeter ',' related item sections on mouseover from the actor's inventory is item config include line highlight_related_sections with separated sections
-// FFx0001 ++
-// Highlight items whose section is listed in ANY item's highlight_related_sections
-// inside the same list. Runs regardless of hover state.
-void CUIActorMenuBase::highlight_related_config_sections(CUIDragDropListEx* ddlist)
+void CUIActorMenuBase::highlight_related_config_sections(PIItem item, CUIDragDropListEx* ddlist)
 {
-    VERIFY(ddlist);
+	VERIFY(item);
+	VERIFY(ddlist);
 
-    u32 const cnt = ddlist->ItemsCount();
-    for (u32 s = 0; s < cnt; ++s)
-    {
-        PIItem src_item = (PIItem)ddlist->GetItemIdx(s)->m_pData;
-        if (!src_item || src_item->m_HiglightRelatedItemSections.empty())
-            continue;
+	if (!item->m_HiglightRelatedItemSections.empty())
+	{
+		u32 const cnt = ddlist->ItemsCount();
+		for (size_t j = 0; j < item->m_HiglightRelatedItemSections.size(); ++j)
+		{
+			for (u32 i = 0; i < cnt; ++i)
+			{
+				CUICellItem* ci = ddlist->GetItemIdx(i);
+				PIItem _item = (PIItem)ci->m_pData;
+				if (!_item)
+				{
+					continue;
+				}
 
-        for (size_t j = 0; j < src_item->m_HiglightRelatedItemSections.size(); ++j)
-        {
-            const shared_str to_higlight_section = src_item->m_HiglightRelatedItemSections[j];
-            if (!to_higlight_section.c_str())
-                continue;
+				const shared_str item_section = _item->object().cNameSect();
+				const shared_str to_higlight_section = item->m_HiglightRelatedItemSections[j];
 
-            for (u32 i = 0; i < cnt; ++i)
-            {
-                CUICellItem* ci = ddlist->GetItemIdx(i);
-                PIItem _item = (PIItem)ci->m_pData;
-                if (!_item)
-                    continue;
-
-                const shared_str item_section = _item->object().cNameSect();
-                if (item_section.c_str() && xr_strcmp(to_higlight_section, item_section) == 0)
-                    ci->m_select_armament = true;
-            }
-        }
-    }
+				if (item_section.c_str() != nullptr && to_higlight_section.c_str() != nullptr && xr_strcmp(to_higlight_section, item_section) == 0)
+				{
+					ci->m_select_armament = true;
+				}
+			}
+		}
+	}
 }
 
 void CUIActorMenuBase::highlight_ammo_for_weapon(PIItem weapon_item, CUIDragDropListEx* ddlist)
