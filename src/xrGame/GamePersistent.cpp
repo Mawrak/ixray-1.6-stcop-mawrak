@@ -1126,12 +1126,5 @@ void CGamePersistent::GetTextureParams(shared_str tex, Frect& out_rect, shared_s
 
 void CGamePersistent::ChangeCursorPosition(Fvector2 value) 
 {
-	if (!psDeviceFlags.test(rsFullscreen))
-	{
-		Fvector2 posCurrent;
-		SDL_GetMouseState(&posCurrent.x, &posCurrent.y);
-		posCurrent.add(value);
-		SDL_WarpMouseGlobal(posCurrent.x, posCurrent.y);
-	}
-	UI().GetUICursor().UpdateCursorPosition(value.x, value.y);
+	
 }

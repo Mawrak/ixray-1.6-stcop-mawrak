@@ -18,7 +18,6 @@ CUICursor::CUICursor()
     m_3dstatic(nullptr)
 {    
 	bVisible				= false;
-	vPrevPos.set			(0.0f, 0.0f);
 	vPos.set				(0.f,0.f);
 	InitInternal			();
 	Device.seqRender.Add	(this, UI_CURSOR);
@@ -42,15 +41,7 @@ void CUICursor::OnScreenResolutionChanged()
 
 void CUICursor::Show()
 {
-	if (bVisible)
-		return;
-
-	u32 screenWidth = psCurrentVidMode[0];
-	u32 screenHeight = psCurrentVidMode[1];
-
-	SetUICursorPosition(Fvector2().set(512.0f, 384.0f));
-	SDL_WarpMouseInWindow(g_AppInfo.Window, screenWidth / 2, screenHeight / 2);
-
+	
 	bVisible = true;
 }
 
@@ -102,6 +93,22 @@ void CUICursor::InitInternal()
 u32 last_render_frame = 0;
 void CUICursor::OnRender	()
 {
+    
+    if (!IsVisible())
+    {
+        bPrevVisible = false;
+		return;
+    }
+    
+    // If we just became visible this frame, sync the system cursor to our frozen position
+    if (!bPrevVisible)
+    {
+        SetUICursorPosition2(vPos);   // moves the real mouse cursor to match vPos
+    }
+
+    bPrevVisible = true;
+    
+    
 	if (pInput->GetControllerMode())
 	{
 		return;
@@ -158,9 +165,16 @@ Fvector2 CUICursor::GetCursorPositionDelta()
 
 void CUICursor::UpdateCursorPosition(int _dx, int _dy)
 {
-	if (!CImGuiManager::Instance().IsCapturingInputs())
-	{
-		vPrevPos = vPos;
+    
+    if (!bVisible)      // <-- added
+        return;
+        
+        
+        POINT p;
+        BOOL r = GetCursorPos(&p);
+        R_ASSERT(r);
+
+        vPrevPos = vPos;
 
 		if (psDeviceFlags.test(rsFullscreen))
 		{
@@ -177,13 +191,23 @@ void CUICursor::UpdateCursorPosition(int _dx, int _dy)
 
 		clamp(vPos.x, 0.f, UI_BASE_WIDTH);
 		clamp(vPos.y, 0.f, UI_BASE_HEIGHT);
-	}
+	
 }
 
 void CUICursor::SetUICursorPosition(Fvector2 pos)
 {
-	if (!CImGuiManager::Instance().IsCapturingInputs())
-	{
-		vPos = pos;
-	}
+
+}
+
+
+void CUICursor::SetUICursorPosition2(Fvector2 pos)
+{
+	vPos = pos;
+	POINT p;
+	p.x = iFloor(vPos.x / (UI_BASE_WIDTH / (float)Device.TargetWidth));
+	p.y = iFloor(vPos.y / (UI_BASE_HEIGHT / (float)Device.TargetHeight));
+
+	SetCursorPos(p.x, p.y);
+    
+    SDL_WarpMouseInWindow(g_AppInfo.Window, p.x, p.y);
 }

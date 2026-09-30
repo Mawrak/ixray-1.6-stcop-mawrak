@@ -13,6 +13,8 @@ class UI_API CUICursor :
 	Fvector2		vPrevPos;
     CUI3dStatic*    m_3dstatic;
 	void			InitInternal				();
+private:
+    bool bPrevVisible;   // track previous frame's visibility
 public:
 					CUICursor					();
 	virtual			~CUICursor					();
@@ -22,6 +24,7 @@ public:
 
 	Fvector2		GetCursorPosition			();
 	void			SetUICursorPosition			(Fvector2 pos);
+    void			SetUICursorPosition2			(Fvector2 pos);
 	void			UpdateCursorPosition		(int _dx, int _dy);
 	virtual void	OnScreenResolutionChanged	();
 
