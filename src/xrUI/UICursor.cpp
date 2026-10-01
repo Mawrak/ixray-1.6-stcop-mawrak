@@ -175,23 +175,20 @@ void CUICursor::UpdateCursorPosition(int _dx, int _dy)
         R_ASSERT(r);
 
         vPrevPos = vPos;
+        
+        float sens = psMouseUISens;
 
-		if (psDeviceFlags.test(rsFullscreen))
-		{
-			float sens = psMouseUISens;
-			vPos.x += _dx * sens;
-			vPos.y += _dy * sens;
-		}
-		else
-		{
-			SDL_GetMouseState(&vPos.x, &vPos.y);
-			vPos.x = vPos.x * (UI_BASE_WIDTH / (float)Device.TargetWidth);
-			vPos.y = vPos.y * (UI_BASE_HEIGHT / (float)Device.TargetHeight);
-		}
+		vPos.x += _dx * sens;
+        vPos.y += _dy * sens;
 
-		clamp(vPos.x, 0.f, UI_BASE_WIDTH);
-		clamp(vPos.y, 0.f, UI_BASE_HEIGHT);
-	
+        clamp(vPos.x, 0.f, UI_BASE_WIDTH);
+        clamp(vPos.y, 0.f, UI_BASE_HEIGHT);
+
+        // In windowed mode the OS pointer still moves on its own, so pin it
+        // back to our virtual position to keep the two in sync.
+        if (!psDeviceFlags.test(rsFullscreen))
+            SetUICursorPosition2(vPos);
+        
 }
 
 void CUICursor::SetUICursorPosition(Fvector2 pos)
