@@ -485,10 +485,7 @@ bool CUIGameCustom::StartCarBody(CInventoryOwner* pActorInv, CInventoryOwner* pO
 
 bool CUIGameCustom::StartCarBody(CInventoryOwner* pActorInv, CInventoryBox* pBox) //Deadbody search
 {
-	if (TopInputReceiver())
-	{
-		return false;
-	}
+
 	CBackpackAnimator* backpack_animator = pActorInv->cast_actor()->HudAnimator()->BackpackAnimator();
 
 	if (backpack_animator != nullptr
