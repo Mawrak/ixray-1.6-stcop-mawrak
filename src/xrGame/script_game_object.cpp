@@ -1149,7 +1149,8 @@ bool CScriptGameObject::Use(CScriptGameObject* obj)
 
 	if (CInventoryBox* pBox = object().cast_inventory_box())
 	{
-
+        if (CUIActorMenuBase* active = CurrentGameUI()->GetActiveInventoryWindow())
+            active->HideDialog();
 		return CurrentGameUI()->StartCarBody(pActorInv, pBox);
 	}
 	else
