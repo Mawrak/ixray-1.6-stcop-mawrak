@@ -159,6 +159,12 @@ void CUIStalkersRankingWnd::FillList()
 			{
 				continue;
 			}
+            
+            // Skip zero-rank characters
+            if (pT->m_rank <= 0)
+            {
+                continue;
+            }
 
 			if(pT==pActorAbstract || (i== m_items_count-1&&actor_place>m_items_count-1)  )
 			{
