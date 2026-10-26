@@ -252,15 +252,15 @@ void CHUDTarget::Render()
 				}
 				accumulatedTime += SHOW_INFO_SPEED * Device.fTimeDelta;
 			}
-			else if (l_pI && our_inv_owner && PP.RQ.range < 2.0f * 2.0f)
-			{
-				if (l_pI->NameItem() && l_pI->CanTake())
-				{
-					targetFont->SetColor(subst_alpha(C, static_cast<u32>(lerp(0.f, 255.f, accumulatedTime))));
-					targetFont->OutNext("%s", l_pI->NameItem());
-				}
-				accumulatedTime += SHOW_INFO_SPEED * Device.fTimeDelta;
-			}
+			//else if (l_pI && our_inv_owner && PP.RQ.range < 2.0f * 2.0f)
+			//{
+			//	if (l_pI->NameItem() && l_pI->CanTake())
+			//	{
+			//		targetFont->SetColor(subst_alpha(C, static_cast<u32>(lerp(0.f, 255.f, accumulatedTime))));
+			//		targetFont->OutNext("%s", l_pI->NameItem());
+			//	}
+			//	accumulatedTime += SHOW_INFO_SPEED * Device.fTimeDelta;
+			//}
 		}
 		else
 		{
