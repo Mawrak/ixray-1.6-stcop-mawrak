@@ -8,6 +8,7 @@
 #ifndef _EDITOR
 #include "imgui.h"
 #include "../../xrEngine/Autotest.h"
+#include "ScreenshotManager.h"
 #endif
 
 dxRenderDeviceRender::dxRenderDeviceRender()
@@ -430,6 +431,8 @@ void dxRenderDeviceRender::End()
 		PROF_EVENT("Async Screenshot");
 		DoAsyncScreenshot();
 	}
+	// Capture the game before ImGui and Present hooks add overlays.
+	ScreenshotManager::CapturePendingScreenshot();
 #if defined(DEBUG_DRAW) && defined(IXR_WINDOWS)
 	{
 		PROF_EVENT("ImGui EndRender");
