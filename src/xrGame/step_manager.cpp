@@ -271,7 +271,7 @@ void CStepManager::update(bool b_hud_view)
 			}
 
 			// Играть партиклы
-			if(b_play && !mtl_pair->CollideParticles.empty())	
+			if(b_play && !mtl_pair->CollideParticles.empty()  && m_foot_bones[i] != BI_NONE)	
 			{
 				const char* ps_name = *mtl_pair->CollideParticles[::Random.randI(0, (u32)mtl_pair->CollideParticles.size())];
 
